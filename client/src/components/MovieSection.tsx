@@ -43,14 +43,15 @@ export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: 
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      <div className="flex md:grid gap-4 overflow-x-auto md:overflow-x-visible md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
         {movies.map((movie) => (
-          <MovieCard
-            key={movie.id}
-            {...movie}
-            onAddToWatchlist={() => onAddToWatchlist?.(movie.id)}
-            onAddToGroup={() => onAddToGroup?.(movie.id)}
-          />
+          <div key={movie.id} className="flex-shrink-0 w-[45%] sm:w-[30%] md:w-auto">
+            <MovieCard
+              {...movie}
+              onAddToWatchlist={() => onAddToWatchlist?.(movie.id)}
+              onAddToGroup={() => onAddToGroup?.(movie.id)}
+            />
+          </div>
         ))}
       </div>
     </div>
