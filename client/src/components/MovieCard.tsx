@@ -6,22 +6,24 @@ import { useState } from "react";
 interface MovieCardProps {
   id: number;
   title: string;
-  posterPath: string | null;
-  rating: number;
+  poster_path: string | null;
+  vote_average: number;
+  isWatchlistItem?: boolean;
   onAddToWatchlist?: () => void;
   onAddToGroup?: () => void;
 }
 
 export function MovieCard({ 
   title, 
-  posterPath, 
-  rating, 
+  poster_path, 
+  vote_average,
+  isWatchlistItem, 
   onAddToWatchlist, 
   onAddToGroup 
 }: MovieCardProps) {
   const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const imageUrl = posterPath 
-    ? `https://image.tmdb.org/t/p/w500${posterPath}`
+  const imageUrl = poster_path 
+    ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : 'https://via.placeholder.com/500x750?text=No+Poster';
 
   const handleWatchlistClick = () => {
@@ -49,9 +51,9 @@ export function MovieCard({
           data-testid={`badge-rating-${title.toLowerCase().replace(/\s+/g, '-')}`}
         >
           <Star className="w-3 h-3 fill-primary text-primary" />
-          <span className="text-xs font-semibold">{rating.toFixed(1)}</span>
+          <span className="text-xs font-semibold">{vote_average.toFixed(1)}</span> 
         </Badge>
-
+        {!isWatchlistItem && (
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center gap-2 pb-4">
           <Button
             size="sm"
@@ -72,6 +74,8 @@ export function MovieCard({
             <Plus className="w-4 h-4" />
           </Button>
         </div>
+        )}
+        
       </div>
       
       <div className="mt-2">

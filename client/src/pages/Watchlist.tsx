@@ -1,14 +1,66 @@
 import { Navbar } from "@/components/Navbar";
 import { MovieCard } from "@/components/MovieCard";
 import { BottomNav } from "@/components/BottomNav";
+import { TMDB_API_KEY, BACKEND_BASE } from '../../../config';
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { Movie } from "@/types/movie";
 
 export default function Watchlist() {
-  const watchlistMovies = [
-    { id: 1, title: 'The Shawshank Redemption', posterPath: '/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg', rating: 8.7 },
-    { id: 2, title: 'The Dark Knight', posterPath: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', rating: 9.0 },
-    { id: 3, title: 'Inception', posterPath: '/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg', rating: 8.8 },
-    { id: 4, title: 'Interstellar', posterPath: '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', rating: 8.6 },
-  ];
+  type WatchlistItem = {
+  id: string | number;
+  // Add other properties as needed, e.g. title, poster, etc.
+};
+   const [items, setItems] = useState<Movie[]>([])
+
+  useEffect(()=>{
+    async function load(){
+      try{
+        const res = await axios.get(`${BACKEND_BASE}/api/watchlist`,{withCredentials:true})
+        const watchlist = res.data;
+        const movieIds = watchlist.movieIds || [];
+        const validIds = movieIds
+          .map((id: any) => {
+            if (typeof id === "string") {
+              try {
+                const parsed = JSON.parse(id);
+                return parsed.id || id;
+              } catch {
+                return id;
+              }
+            }
+            if (typeof id === "object" && id.id) return id.id;
+            return id;
+          })
+          .filter(Boolean);
+
+        const movies: Movie[] = [];
+        for (const id of validIds) {
+          try {
+            const tmdbRes = await axios.get(
+              `https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}`
+            );
+            movies.push(tmdbRes.data);
+          } catch (err) {
+            // Optionally handle error for individual movie fetch
+          }
+        }
+        setItems(movies);
+      }catch(e){
+        console.error(e)
+      }
+    }
+    load()
+  },[])
+
+  const removeItem = async (movieId:string | number) => {
+    try{
+      await axios.post(`${BACKEND_BASE}/api/watchlist/remove`, { movieId },{withCredentials:true})
+      setItems(items.filter(i => i.id !== movieId))
+    }catch(e){
+      alert('Remove failed (placeholder)')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
@@ -18,16 +70,17 @@ export default function Watchlist() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2" data-testid="text-watchlist-title">My Watchlist</h1>
           <p className="text-muted-foreground" data-testid="text-watchlist-count">
-            {watchlistMovies.length} movies saved
+            {items.length} movies saved
           </p>
         </div>
 
-        {watchlistMovies.length > 0 ? (
+        {items.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {watchlistMovies.map((movie) => (
+            {items.map((movie) => (
               <MovieCard
                 key={movie.id}
                 {...movie}
+                isWatchlistItem={true}
                 onAddToWatchlist={() => console.log('Remove from watchlist:', movie.id)}
                 onAddToGroup={() => console.log('Add to group:', movie.id)}
               />

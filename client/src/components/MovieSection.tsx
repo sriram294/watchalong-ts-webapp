@@ -2,19 +2,15 @@ import { MovieCard } from "@/components/MovieCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface Movie {
-  id: number;
-  title: string;
-  posterPath: string | null;
-  rating: number;
-}
+import type { Movie } from "@/types/movie";
 
 interface MovieSectionProps {
   title: string;
   movies: Movie[];
-  onAddToWatchlist?: (movieId: number) => void;
-  onAddToGroup?: (movieId: number) => void;
+  onAddToWatchlist?: (movie: Movie) => void;
+  onAddToGroup?: (movie: Movie) => void;
 }
+
 
 export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: MovieSectionProps) {
   return (
@@ -48,8 +44,8 @@ export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: 
           <div key={movie.id} className="flex-shrink-0 w-[45%] sm:w-[30%] md:w-auto">
             <MovieCard
               {...movie}
-              onAddToWatchlist={() => onAddToWatchlist?.(movie.id)}
-              onAddToGroup={() => onAddToGroup?.(movie.id)}
+              onAddToWatchlist={() => onAddToWatchlist?.(movie)}
+              onAddToGroup={() => onAddToGroup?.(movie)}
             />
           </div>
         ))}
