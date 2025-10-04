@@ -2,10 +2,12 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
+
 interface SearchBarProps {
   onSearch?: (query: string) => void;
   placeholder?: string;
 }
+
 
 export function SearchBar({ onSearch, placeholder = "Search for movies..." }: SearchBarProps) {
   const [query, setQuery] = useState("");

@@ -3,13 +3,33 @@ import { SearchBar } from "@/components/SearchBar";
 import { MovieCard } from "@/components/MovieCard";
 import { BottomNav } from "@/components/BottomNav";
 import { useState } from "react";
+import { BACKEND_BASE, TMDB_API_KEY } from "../../../config";
+import axios from "axios";
+import { HeroSection } from "@/components/HeroSection";
+import { Movie } from "@/types/movie";
+
+
 
 export default function SearchPage() {
-  const [searchResults] = useState([
-    { id: 1, title: 'The Shawshank Redemption', posterPath: '/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg', rating: 8.7 },
-    { id: 2, title: 'The Dark Knight', posterPath: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', rating: 9.0 },
-    { id: 3, title: 'Inception', posterPath: '/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg', rating: 8.8 },
-  ]);
+  const [searchResults, setSearchResults] = useState<Movie[]>([]);
+
+
+  const searchMovies = async (query : string) => {
+try {
+      const res = await axios.get(
+        `https://api.themoviedb.org/3/search/movie?query=${query}&include_adult=true&language=en-US&page=1&api_key=${TMDB_API_KEY}` // important for sending session cookies
+      );
+
+     setSearchResults( (res.data.results || []).filter((movie: any) => movie.original_language === "en") );
+      console.log(res.data);
+    } catch (err: any) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+    window.location.href = `${BACKEND_BASE}/oauth2/authorization/google`;
+  }
+    }
+  
+}
+
 
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
@@ -18,7 +38,7 @@ export default function SearchPage() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-6" data-testid="text-search-title">Search Movies</h1>
-          <SearchBar onSearch={(q) => console.log('Searching:', q)} />
+          <SearchBar onSearch={searchMovies} />
         </div>
 
         <div className="mt-8">

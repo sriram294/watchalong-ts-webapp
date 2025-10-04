@@ -19,7 +19,6 @@ export function HeroSection() {
         <p className="text-lg md:text-xl text-muted-foreground mb-8" data-testid="text-hero-subtitle">
           Watch together, vote on favorites, and create the perfect movie night
         </p>
-        <SearchBar placeholder="Search for your next favorite movie..." />
       </div>
     </div>
   );
