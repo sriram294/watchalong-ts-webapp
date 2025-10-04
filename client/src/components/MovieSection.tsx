@@ -2,7 +2,14 @@ import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MovieCard } from "./MovieCard"; // adjust import
+import { Movie } from "@/types/movie";
 
+ interface MovieSectionProps {
+  title: string;
+  movies: Movie[];
+  onAddToWatchlist?: (movie: Movie) => void;
+  onAddToGroup?: (movie: Movie) => void;
+}
 export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: MovieSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +59,7 @@ export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: 
         ref={scrollRef}
         className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide"
       >
-        {movies.map((movie) => (
+        {movies.map((movie:Movie) => (
           <div
             key={movie.id}
             className="flex-shrink-0 w-[70%] sm:w-[40%] md:w-1/4 lg:w-1/5 xl:w-1/6"

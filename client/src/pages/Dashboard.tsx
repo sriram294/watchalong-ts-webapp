@@ -159,12 +159,12 @@ export default function Dashboard() {
       ))}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="shadcn-card rounded-xl border backdrop-blur-xl bg-background/30 border-card-border text-card-foreground shadow-sm p-4 hover-elevate active-elevate-2 cursor-pointer">
+          <div className="shadcn-card rounded-xl border backdrop-blur-xl bg-background/30 border-card-border text-card-foreground shadow-sm p-4 cursor-pointer">
             <h2 className="text-lg font-bold mb-4">Select Groups</h2>
             <div className="max-h-60 overflow-y-auto mb-4">
               {groups.map(group => (
                 <div className="p-1" key={group.id}>
-                  <label key={group.id} className="flex items-center mb-2">
+                  <label key={group.id} className="flex items-center mb-2 ">
                     <input
                       type="checkbox"
                       checked={selectedGroups.includes(group.id)}
