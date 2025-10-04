@@ -31,12 +31,9 @@ export default function Groups() {
         movieCount: g.movies?.length || 0,
       }));
     } catch (err: any) {
-      if (err.response && err.response.status === 302) {
-        // Axios sees the redirect status — manually navigate to it
-        window.location.href = err.response.headers.location;
-      } else {
-        console.error(err);
-      }
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+    window.location.href = `${BACKEND_BASE}/oauth2/authorization/google`;
+  }
     }
   }
 
@@ -54,7 +51,7 @@ export default function Groups() {
           <div>
             <h1 className="text-4xl font-bold mb-2" data-testid="text-groups-title">My Groups</h1>
             <p className="text-muted-foreground" data-testid="text-groups-count">
-              {groups.length} groups joined
+              {groups?.length} groups joined
             </p>
           </div>
           <Button onClick={() => console.log('Create group')} data-testid="button-create-group">
@@ -64,7 +61,7 @@ export default function Groups() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {groups.map((group) => (
+          {groups?.map((group) => (
             <GroupCard
               key={group.id}
               {...group}
