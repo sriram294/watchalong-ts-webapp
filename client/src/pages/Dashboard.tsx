@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import axios from 'axios';
 import { TMDB_API_KEY, BACKEND_BASE } from '../../../config';
 import { Movie } from "@/types/movie";
-import { Group } from "@/types/Group";
 
 export default function Dashboard() {
   const [movies, setMovies] = useState([]);
@@ -55,7 +54,7 @@ export default function Dashboard() {
       ],
     },
   ];
-  
+
   const categories = [
     { title: "Trending Now", endpoint: `/trending/movie/week` },
     { title: "Popular", endpoint: `/movie/popular` },
@@ -64,36 +63,41 @@ export default function Dashboard() {
   ];
 
   type MovieCategoryProps = {
-  catTitle: string;
-  endpoint: string;
-};
-const fetchGroups = async () => {
-   try {
-    const res = await axios.get(
-      `${BACKEND_BASE}/api/groups/fetchGroups`,{withCredentials:true} // important for sending session cookies
-    );
+    catTitle: string;
+    endpoint: string;
+  };
+  const fetchGroups = async () => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_BASE}/api/groups/fetchGroups`, { withCredentials: true } // important for sending session cookies
+      );
 
-    // If we get here, we are logged in and have the data
-    console.log(res.data);
-    //setGroups(res.data || []);
-    console.log('Fetched groups:', groups);
+      // If we get here, we are logged in and have the data
+      console.log(res.data);
+      //setGroups(res.data || []);
+      console.log('Fetched groups:', groups);
 
-  } catch (err: any) {
-    if (err.response && err.response.status === 302) {
-      // Axios sees the redirect status — manually navigate to it
-      window.location.href = err.response.headers.location;
-    } else {
-      console.error(err);
+    } catch (err: any) {
+      if (err.response && err.response.status === 302) {
+        // Axios sees the redirect status — manually navigate to it
+        window.location.href = err.response.headers.location;
+      } else {
+        console.error(err);
+      }
     }
-  }
   }
 
   const handleAddToGroups = async () => {
     for (const groupId of selectedGroups) {
       try {
-        await axios.post(`${BACKEND_BASE}/api/groups/${groupId}/add-movie`, selectedMovieRef.current, {withCredentials:true})
-      } catch (e) {
-        console.error(e)
+        await axios.post(`${BACKEND_BASE}/api/groups/${groupId}/add-movie`, selectedMovieRef.current, { withCredentials: true })
+      } catch (err: any) {
+        if (err.response && err.response.status === 302) {
+          // Axios sees the redirect status — manually navigate to it
+          window.location.href = err.response.headers.location;
+        } else {
+          console.error(err);
+        }
       }
     }
     alert('Added to selected groups')
@@ -101,7 +105,7 @@ const fetchGroups = async () => {
     setSelectedGroups([])
   }
 
-  const handleGroupSelect = (groupId:any) => {
+  const handleGroupSelect = (groupId: any) => {
     setSelectedGroups(prev =>
       prev.includes(groupId)
         ? prev.filter(id => id !== groupId)
@@ -109,10 +113,21 @@ const fetchGroups = async () => {
     )
   }
 
-const openGroupList = (movie:Movie) => {
+  const openGroupList = (movie: Movie) => {
     selectedMovieRef.current = movie
     fetchGroups()
     setShowModal(true)
+  }
+
+  const addWatchlist = async (movie: Movie) => {
+    try {
+      await axios.post(`${BACKEND_BASE}/api/watchlist/add-movie`, { id:movie.id }, { withCredentials: true })
+      
+    } catch (err: any) {
+  if (axios.isAxiosError(err) && err.response?.status === 401) {
+    window.location.href = `${BACKEND_BASE}/oauth2/authorization/google`;
+  }
+}
   }
 
   const MovieCategory: React.FC<MovieCategoryProps> = ({ catTitle, endpoint }) => {
@@ -120,21 +135,21 @@ const openGroupList = (movie:Movie) => {
     useEffect(() => {
       axios
         .get(`https://api.themoviedb.org/3${endpoint}?api_key=${TMDB_API_KEY}`)
-        .then((res) => setMovies(res.data.results.slice(0, 6)))
+        .then((res) => setMovies(res.data.results))
         .catch((err) => console.error(err));
     }, [endpoint]);
     return (
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
-        <MovieSection 
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
+        <MovieSection
           title={catTitle}
           movies={movies}
-          onAddToWatchlist={(movie) => axios.post(`${BACKEND_BASE}/api/watchlist/add-movie`, { id:movie.id },{withCredentials:true})}
+          onAddToWatchlist={addWatchlist}
           onAddToGroup={openGroupList}
         />
       </div>
     );
   };
-  
+
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
       <Navbar />
@@ -149,15 +164,15 @@ const openGroupList = (movie:Movie) => {
             <div className="max-h-60 overflow-y-auto mb-4">
               {groups.map(group => (
                 <div className="p-1" key={group.id}>
-                <label key={group.id} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedGroups.includes(group.id)}
-                    onChange={() => handleGroupSelect(group.id)}
-                    className="mr-2"
-                  />
-                  {group.name}
-                </label>
+                  <label key={group.id} className="flex items-center mb-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedGroups.includes(group.id)}
+                      onChange={() => handleGroupSelect(group.id)}
+                      className="mr-2"
+                    />
+                    {group.name}
+                  </label>
                 </div>
               ))}
             </div>

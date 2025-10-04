@@ -1,47 +1,62 @@
-import { MovieCard } from "@/components/MovieCard";
+import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-import type { Movie } from "@/types/movie";
-
-interface MovieSectionProps {
-  title: string;
-  movies: Movie[];
-  onAddToWatchlist?: (movie: Movie) => void;
-  onAddToGroup?: (movie: Movie) => void;
-}
-
+import { MovieCard } from "./MovieCard"; // adjust import
 
 export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: MovieSectionProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const cardWidth = scrollRef.current.firstElementChild?.clientWidth || 200; // estimate card width
+      const scrollAmount = cardWidth * 6; // scroll by 6 cards
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <div className="mb-12">
+      {/* Header with controls */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold" data-testid={`text-section-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+        <h2
+          className="text-2xl font-bold"
+          data-testid={`text-section-${title.toLowerCase().replace(/\s+/g, "-")}`}
+        >
           {title}
         </h2>
         <div className="flex gap-2">
-          <Button 
-            size="icon" 
+          <Button
+            size="icon"
             variant="ghost"
-            onClick={() => console.log('Scroll left')}
-            data-testid={`button-scroll-left-${title.toLowerCase().replace(/\s+/g, '-')}`}
+            onClick={() => scroll("left")}
+            data-testid={`button-scroll-left-${title.toLowerCase().replace(/\s+/g, "-")}`}
           >
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <Button 
-            size="icon" 
+          <Button
+            size="icon"
             variant="ghost"
-            onClick={() => console.log('Scroll right')}
-            data-testid={`button-scroll-right-${title.toLowerCase().replace(/\s+/g, '-')}`}
+            onClick={() => scroll("right")}
+            data-testid={`button-scroll-right-${title.toLowerCase().replace(/\s+/g, "-")}`}
           >
             <ChevronRight className="w-5 h-5" />
           </Button>
         </div>
       </div>
 
-      <div className="flex md:grid gap-4 overflow-x-auto md:overflow-x-visible md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+      {/* Scrollable movie list */}
+      <div
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide"
+      >
         {movies.map((movie) => (
-          <div key={movie.id} className="flex-shrink-0 w-[45%] sm:w-[30%] md:w-auto">
+          <div
+            key={movie.id}
+            className="flex-shrink-0 w-[70%] sm:w-[40%] md:w-1/4 lg:w-1/5 xl:w-1/6"
+          >
             <MovieCard
               {...movie}
               onAddToWatchlist={() => onAddToWatchlist?.(movie)}

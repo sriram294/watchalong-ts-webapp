@@ -2,7 +2,7 @@ import { SearchBar } from "@/components/SearchBar";
 
 export function HeroSection() {
   return (
-    <div className="relative h-[20vh] md:h-[30vh] flex items-center justify-center overflow-hidden">
+    <div className="relative h-[35vh] md:h-[45vh] flex items-center justify-center overflow-hidden">
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
