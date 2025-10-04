@@ -4,26 +4,33 @@ import { MemberList } from "@/components/MemberList";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
+import { useEffect, useState } from "react";
+import { Movie } from "@/types/movie";
+import { User } from "@/types/user";
+import axios from "axios";
+import { BACKEND_BASE } from "../../../config";
 
 export default function GroupDetail() {
   const [, setLocation] = useLocation();
+  const { id } = useParams<{ id: string }>();
 
-  const groupMovies = [
-    { id: 1, title: 'Interstellar', posterPath: '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', rating: 8.6, upvotes: 12, downvotes: 3 },
-    { id: 2, title: 'The Matrix', posterPath: '/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg', rating: 8.7, upvotes: 8, downvotes: 1 },
-    { id: 3, title: 'Blade Runner 2049', posterPath: '/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg', rating: 8.0, upvotes: 6, downvotes: 2 },
-    { id: 4, title: 'Arrival', posterPath: '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg', rating: 7.9, upvotes: 5, downvotes: 1 },
-  ];
+  const [groupMovies, setGroupMovies] = useState<Movie[]>([]);
+  const [members, setMembers] = useState<User[]>([]);
 
-  const members = [
-    { id: '1', name: 'Alice Johnson', avatar: 'https://i.pravatar.cc/150?img=1' },
-    { id: '2', name: 'Bob Smith', avatar: 'https://i.pravatar.cc/150?img=2' },
-    { id: '3', name: 'Carol White', avatar: 'https://i.pravatar.cc/150?img=3' },
-    { id: '4', name: 'David Brown', avatar: 'https://i.pravatar.cc/150?img=4' },
-    { id: '5', name: 'Eve Davis', avatar: 'https://i.pravatar.cc/150?img=5' },
-  ];
+  useEffect(()=>{
+    load()
+  },[id])
 
+  const load = async ()=> {
+    try{
+      const res = await axios.get(`${BACKEND_BASE}/api/groups/${id}`,{withCredentials:true})
+      setGroupMovies(res.data.movies || []);
+      setMembers(res.data.members || [])
+    }catch(e){ console.error(e) }
+  }
+
+  
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
       <Navbar />

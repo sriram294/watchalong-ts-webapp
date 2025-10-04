@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { User } from "@/types/user";
 
 interface Member {
   id: string;
@@ -10,7 +11,7 @@ interface Member {
 }
 
 interface MemberListProps {
-  members: Member[];
+  members: User[];
   onInvite?: () => void;
 }
 

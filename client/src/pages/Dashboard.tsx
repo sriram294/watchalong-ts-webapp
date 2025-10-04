@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from 'axios';
 import { TMDB_API_KEY, BACKEND_BASE } from '../../../config';
 import { Movie } from "@/types/movie";
+import { Group } from "@/types/group";
 
 export default function Dashboard() {
   const [movies, setMovies] = useState([]);
@@ -14,46 +15,7 @@ export default function Dashboard() {
   //const [groups, setGroups] = useState<Group[]>([])
   const [selectedGroups, setSelectedGroups] = useState<(string | number)[]>([])
   const selectedMovieRef = useRef<Movie | null>(null)
-
-  const groups = [
-    {
-      id: '1',
-      name: 'Movie Night Crew',
-      memberCount: 8,
-      movieCount: 12,
-      members: [
-        { id: '1', name: 'Alice Johnson', avatar: 'https://i.pravatar.cc/150?img=1' },
-        { id: '2', name: 'Bob Smith', avatar: 'https://i.pravatar.cc/150?img=2' },
-        { id: '3', name: 'Carol White', avatar: 'https://i.pravatar.cc/150?img=3' },
-        { id: '4', name: 'David Brown', avatar: 'https://i.pravatar.cc/150?img=4' },
-        { id: '5', name: 'Eve Davis', avatar: 'https://i.pravatar.cc/150?img=5' },
-      ],
-    },
-    {
-      id: '2',
-      name: 'Sci-Fi Lovers',
-      memberCount: 5,
-      movieCount: 8,
-      members: [
-        { id: '6', name: 'Frank Miller', avatar: 'https://i.pravatar.cc/150?img=6' },
-        { id: '7', name: 'Grace Lee', avatar: 'https://i.pravatar.cc/150?img=7' },
-        { id: '8', name: 'Henry Wilson', avatar: 'https://i.pravatar.cc/150?img=8' },
-      ],
-    },
-    {
-      id: '3',
-      name: 'Classic Cinema Club',
-      memberCount: 12,
-      movieCount: 24,
-      members: [
-        { id: '9', name: 'Ivy Chen', avatar: 'https://i.pravatar.cc/150?img=9' },
-        { id: '10', name: 'Jack Davis', avatar: 'https://i.pravatar.cc/150?img=10' },
-        { id: '11', name: 'Kate Moore', avatar: 'https://i.pravatar.cc/150?img=11' },
-        { id: '12', name: 'Liam Taylor', avatar: 'https://i.pravatar.cc/150?img=12' },
-        { id: '13', name: 'Mia Anderson', avatar: 'https://i.pravatar.cc/150?img=13' },
-      ],
-    },
-  ];
+  const [groups, setGroups] = useState<Group[]>([])
 
   const categories = [
     { title: "Trending Now", endpoint: `/trending/movie/week` },
@@ -74,7 +36,7 @@ export default function Dashboard() {
 
       // If we get here, we are logged in and have the data
       console.log(res.data);
-      //setGroups(res.data || []);
+      setGroups(res.data || []);
       console.log('Fetched groups:', groups);
 
     } catch (err: any) {
@@ -177,6 +139,12 @@ export default function Dashboard() {
               ))}
             </div>
             <div className="flex justify-center space-x-2">
+              <button
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 bg-primary text-primary-foreground border border-primary-border min-h-8 rounded-md px-3 text-xs"
+                onClick={() => console.log('Create group')} data-testid="button-create-group"
+              >
+                Create Group
+              </button>
               <button
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 bg-primary text-primary-foreground border border-primary-border min-h-8 rounded-md px-3 text-xs"
                 onClick={handleAddToGroups}

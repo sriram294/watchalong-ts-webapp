@@ -6,8 +6,8 @@ import { useState } from "react";
 interface GroupMovieCardProps {
   id: number;
   title: string;
-  posterPath: string | null;
-  rating: number;
+  poster_path: string | null;
+  vote_average: number;
   upvotes: number;
   downvotes: number;
   userVote?: 'up' | 'down' | null;
@@ -16,8 +16,8 @@ interface GroupMovieCardProps {
 
 export function GroupMovieCard({ 
   title, 
-  posterPath, 
-  rating, 
+  poster_path, 
+  vote_average, 
   upvotes: initialUpvotes, 
   downvotes: initialDownvotes,
   userVote: initialUserVote,
@@ -27,8 +27,8 @@ export function GroupMovieCard({
   const [upvotes, setUpvotes] = useState(initialUpvotes);
   const [downvotes, setDownvotes] = useState(initialDownvotes);
 
-  const imageUrl = posterPath 
-    ? `https://image.tmdb.org/t/p/w500${posterPath}`
+  const imageUrl = poster_path 
+    ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : 'https://via.placeholder.com/500x750?text=No+Poster';
 
   const handleVote = (vote: 'up' | 'down') => {
@@ -62,7 +62,7 @@ export function GroupMovieCard({
           data-testid={`badge-movie-rating-${title.toLowerCase().replace(/\s+/g, '-')}`}
         >
           <Star className="w-3 h-3 fill-primary text-primary" />
-          <span className="text-xs font-semibold">{rating.toFixed(1)}</span>
+          <span className="text-xs font-semibold">{vote_average.toFixed(1)}</span>
         </Badge>
       </div>
       

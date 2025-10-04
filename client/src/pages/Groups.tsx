@@ -4,54 +4,51 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
+import { Group } from "@/types/group";
+import axios from "axios";
+import { BACKEND_BASE } from "../../../config";
 
 export default function Groups() {
   const [, setLocation] = useLocation();
+  const [groups, setGroups] = useState<Group[]>([]);
 
-  const groups = [
-    {
-      id: '1',
-      name: 'Movie Night Crew',
-      memberCount: 8,
-      movieCount: 12,
-      members: [
-        { id: '1', name: 'Alice Johnson', avatar: 'https://i.pravatar.cc/150?img=1' },
-        { id: '2', name: 'Bob Smith', avatar: 'https://i.pravatar.cc/150?img=2' },
-        { id: '3', name: 'Carol White', avatar: 'https://i.pravatar.cc/150?img=3' },
-        { id: '4', name: 'David Brown', avatar: 'https://i.pravatar.cc/150?img=4' },
-        { id: '5', name: 'Eve Davis', avatar: 'https://i.pravatar.cc/150?img=5' },
-      ],
-    },
-    {
-      id: '2',
-      name: 'Sci-Fi Lovers',
-      memberCount: 5,
-      movieCount: 8,
-      members: [
-        { id: '6', name: 'Frank Miller', avatar: 'https://i.pravatar.cc/150?img=6' },
-        { id: '7', name: 'Grace Lee', avatar: 'https://i.pravatar.cc/150?img=7' },
-        { id: '8', name: 'Henry Wilson', avatar: 'https://i.pravatar.cc/150?img=8' },
-      ],
-    },
-    {
-      id: '3',
-      name: 'Classic Cinema Club',
-      memberCount: 12,
-      movieCount: 24,
-      members: [
-        { id: '9', name: 'Ivy Chen', avatar: 'https://i.pravatar.cc/150?img=9' },
-        { id: '10', name: 'Jack Davis', avatar: 'https://i.pravatar.cc/150?img=10' },
-        { id: '11', name: 'Kate Moore', avatar: 'https://i.pravatar.cc/150?img=11' },
-        { id: '12', name: 'Liam Taylor', avatar: 'https://i.pravatar.cc/150?img=12' },
-        { id: '13', name: 'Mia Anderson', avatar: 'https://i.pravatar.cc/150?img=13' },
-      ],
-    },
-  ];
+
+  const fetchGroups = async () => {
+    try {
+      const res = await axios.get(
+        `${BACKEND_BASE}/api/groups/fetchGroups`, { withCredentials: true } // important for sending session cookies
+      );
+
+      // If we get here, we are logged in and have the data
+      console.log(res.data);
+      return res.data.map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        members: g.members,
+        movies: g.movies,
+        memberCount: g.members?.length || 0,
+        movieCount: g.movies?.length || 0,
+      }));
+    } catch (err: any) {
+      if (err.response && err.response.status === 302) {
+        // Axios sees the redirect status — manually navigate to it
+        window.location.href = err.response.headers.location;
+      } else {
+        console.error(err);
+      }
+    }
+  }
+
+  useEffect(() => {
+    // This runs once on component mount
+    fetchGroups().then(setGroups);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>

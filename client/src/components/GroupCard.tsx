@@ -2,19 +2,16 @@ import { Users, Film } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User } from "@/types/user";
 
-interface GroupMember {
-  id: string;
-  name: string;
-  avatar?: string;
-}
+
 
 interface GroupCardProps {
   id: string;
   name: string;
   memberCount: number;
   movieCount: number;
-  members: GroupMember[];
+  members: User[];
   onEnter: () => void;
 }
 
