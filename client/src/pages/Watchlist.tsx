@@ -3,64 +3,85 @@ import { MovieCard } from "@/components/MovieCard";
 import { BottomNav } from "@/components/BottomNav";
 import { TMDB_API_KEY, BACKEND_BASE } from '../../../config';
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { fetchGroups as sharedFetchGroups, addMovieToGroups as sharedAddMovieToGroups } from "@/lib/groups";
+import { onAddToWatchlist as sharedOnAddToWatchlist } from "@/lib/watchlist";
+import { useEffect, useRef, useState } from "react";
 import { Movie } from "@/types/movie";
+import { Group } from "@/types/group";
 
 export default function Watchlist() {
-  type WatchlistItem = {
-  id: string | number;
-  // Add other properties as needed, e.g. title, poster, etc.
-};
-   const [items, setItems] = useState<Movie[]>([])
+ 
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [watchlistMovieIds, setWatchlistMovieIds] = useState<number[]>([]);
+  const [showModal, setShowModal] = useState(false)
+  const [selectedGroups, setSelectedGroups] = useState<(string | number)[]>([])
+  const selectedMovieRef = useRef<Movie | null>(null)
+  const [groups, setGroups] = useState<Group[]>([])
 
-  useEffect(()=>{
-    async function load(){
-      try{
-        const res = await axios.get(`${BACKEND_BASE}/api/watchlist`,{withCredentials:true})
-        const watchlist = res.data;
-        const movieIds = watchlist.movieIds || [];
-        const validIds = movieIds
-          .map((id: any) => {
-            if (typeof id === "string") {
-              try {
-                const parsed = JSON.parse(id);
-                return parsed.id || id;
-              } catch {
-                return id;
-              }
-            }
-            if (typeof id === "object" && id.id) return id.id;
-            return id;
-          })
-          .filter(Boolean);
+  useEffect(() => {
+    // Fetch watchlist IDs and then fetch movie details
+    const fetchWatchlistAndMovies = async () => {
+      try {
+        const res = await axios.get(`${BACKEND_BASE}/api/watchlist`, { withCredentials: true });
+        const ids: number[] = res.data.movieIds || [];
+        setWatchlistMovieIds(ids);
 
-        const movies: Movie[] = [];
-        for (const id of validIds) {
-          try {
-            const tmdbRes = await axios.get(
-              `https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_API_KEY}`
-            );
-            movies.push(tmdbRes.data);
-          } catch (err) {
-            // Optionally handle error for individual movie fetch
-          }
+        if (ids.length > 0) {
+          // Fetch details for each movie ID in parallel
+          const moviePromises = ids.map((id: number) =>
+            axios.get(`https://api.themoviedb.org/3/movie/${id}`, {
+              params: { api_key: TMDB_API_KEY }
+            }).then(res => res.data)
+          );
+          const movieDetails = await Promise.all(moviePromises);
+          setMovies(movieDetails);
+        } else {
+          setMovies([]);
         }
-        setItems(movies);
-      }catch(e){
-        console.error(e)
+      } catch (error) {
+        console.error('Error fetching watchlist or movie details:', error);
+        setMovies([]);
       }
-    }
-    load()
-  },[])
+    };
 
-  const removeItem = async (movieId:string | number) => {
-    try{
-      await axios.post(`${BACKEND_BASE}/api/watchlist/remove`, { movieId },{withCredentials:true})
-      setItems(items.filter(i => i.id !== movieId))
-    }catch(e){
-      alert('Remove failed (placeholder)')
+    fetchWatchlistAndMovies();
+  }, []);
+
+  
+  const onAddToWatchlist = (movieId: number) => {
+    sharedOnAddToWatchlist(movieId, watchlistMovieIds);
+  }
+
+  const fetchGroups = async () => {
+    const groupsData = await sharedFetchGroups();
+    setGroups(groupsData);
+    console.log('Fetched groups:', groupsData);
+  }
+
+  const handleAddToGroups = async () => {
+    if (selectedMovieRef.current) {
+      await sharedAddMovieToGroups(selectedGroups, selectedMovieRef.current);
+      alert('Added to selected groups');
+      setShowModal(false);
+      setSelectedGroups([]);
     }
   }
+
+
+  const handleGroupSelect = (groupId: any) => {
+    setSelectedGroups(prev =>
+      prev.includes(groupId)
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    )
+  }
+
+  const openGroupList = (movie: Movie) => {
+    selectedMovieRef.current = movie
+    fetchGroups()
+    setShowModal(true)
+  }
+
 
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
@@ -70,19 +91,19 @@ export default function Watchlist() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2" data-testid="text-watchlist-title">My Watchlist</h1>
           <p className="text-muted-foreground" data-testid="text-watchlist-count">
-            {items.length} movies saved
+            {movies.length} movies saved
           </p>
         </div>
 
-        {items.length > 0 ? (
+        {movies.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {items.map((movie) => (
+            {movies.map((movie) => (
               <MovieCard
                 key={movie.id}
                 {...movie}
                 isWatchlistItem={true}
-                onAddToWatchlist={() => console.log('Remove from watchlist:', movie.id)}
-                onAddToGroup={() => console.log('Add to group:', movie.id)}
+                onAddToWatchlist={onAddToWatchlist}
+                onAddToGroup={() => openGroupList(movie)}
               />
             ))}
           </div>
@@ -93,7 +114,48 @@ export default function Watchlist() {
           </div>
         )}
       </div>
-
+        {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="shadcn-card rounded-xl border backdrop-blur-xl bg-background/30 border-card-border text-card-foreground shadow-sm p-4 cursor-pointer">
+            <h2 className="text-lg font-bold mb-4">Select Groups</h2>
+            <div className="max-h-60 overflow-y-auto mb-4">
+              {groups.map(group => (
+                <div className="p-1" key={group.id}>
+                  <label key={group.id} className="flex items-center mb-2 ">
+                    <input
+                      type="checkbox"
+                      checked={selectedGroups.includes(group.id)}
+                      onChange={() => handleGroupSelect(group.id)}
+                      className="mr-2"
+                    />
+                    {group.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-center space-x-2">
+              <button
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 bg-primary text-primary-foreground border border-primary-border min-h-8 rounded-md px-3 text-xs"
+                onClick={() => console.log('Create group')} data-testid="button-create-group"
+              >
+                Create Group
+              </button>
+              <button
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 bg-primary text-primary-foreground border border-primary-border min-h-8 rounded-md px-3 text-xs"
+                onClick={handleAddToGroups}
+              >
+                Add
+              </button>
+              <button
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 bg-primary text-primary-foreground border border-primary-border min-h-8 rounded-md px-3 text-xs"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <BottomNav />
     </div>
   );
