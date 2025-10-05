@@ -11,6 +11,7 @@ import Groups from "@/pages/Groups";
 import GroupDetail from "@/pages/GroupDetail";
 import SearchPage from "@/pages/SearchPage";
 import Login from "@/pages/Login";
+import MovieDetail from "./pages/MovieDetail";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/watchlist" component={Watchlist} />
       <Route path="/groups" component={Groups} />
       <Route path="/groups/:id" component={GroupDetail} />
+      <Route path="/movie/:id" component={MovieDetail} />
       <Route component={NotFound} />
     </Switch>
   );

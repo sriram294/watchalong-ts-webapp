@@ -2,6 +2,7 @@ import { Star, Heart, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface MovieCardProps {
   id: number;
@@ -26,6 +27,7 @@ export function MovieCard({
   const imageUrl = poster_path
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : 'https://via.placeholder.com/500x750?text=No+Poster';
+  const navigate = useNavigate();
 
   const handleWatchlistClick = (movieid: number) => {
     setIsInWatchlist(!isInWatchlist);
@@ -33,14 +35,21 @@ export function MovieCard({
     console.log('Watchlist toggled:', title);
   };
 
-  
   const handleGroupClick = () => {
     onAddToGroup?.();
     console.log('Add to group:', title);
   };
 
+  const handleCardClick = () => {
+    navigate(`/movie/${id}`);
+  };
+
   return (
-    <div className="group relative overflow-hidden rounded-lg transition-transform hover:scale-105" data-testid={`card-movie-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+    <div
+      className="group relative overflow-hidden rounded-lg transition-transform hover:scale-105 cursor-pointer"
+      data-testid={`card-movie-${title.toLowerCase().replace(/\s+/g, '-')}`}
+      onClick={handleCardClick}
+    >
       <div className="aspect-[2/3] relative">
         <img
           src={imageUrl}
