@@ -17,6 +17,7 @@ export default function GroupDetail() {
 
   const [groupMovies, setGroupMovies] = useState<Movie[]>([]);
   const [members, setMembers] = useState<User[]>([]);
+  const [groupName, setGroupName] = useState<string>(""); // Placeholder, ideally fetched from backend
 
   useEffect(()=>{
     load()
@@ -26,7 +27,8 @@ export default function GroupDetail() {
     try{
       const res = await axios.get(`${BACKEND_BASE}/api/groups/${id}`,{withCredentials:true})
       setGroupMovies(res.data.movies || []);
-      setMembers(res.data.members || [])
+      setMembers(res.data.members || []);
+      setGroupName(res.data.name || "");
     }catch(e){ console.error(e) }
   }
 
@@ -46,7 +48,7 @@ export default function GroupDetail() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-4xl font-bold mb-2" data-testid="text-group-name">Movie Night Crew</h1>
+            <h1 className="text-4xl font-bold mb-2" data-testid="text-group-name">{groupName}</h1>
             <p className="text-muted-foreground" data-testid="text-group-description">
               Vote on movies to watch together
             </p>
