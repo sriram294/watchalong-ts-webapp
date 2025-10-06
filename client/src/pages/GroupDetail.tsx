@@ -7,16 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { useEffect, useState } from "react";
-import { Movie } from "@/types/movie";
+import { GroupMovie } from "@/types/groupmovie";
 import { User } from "@/types/user";
 import axios from "axios";
-import { BACKEND_BASE } from "../config";
+import { BACKEND_BASE, TMDB_API_KEY } from "../config";
 
 export default function GroupDetail() {
   const [, setLocation] = useLocation();
   const { id } = useParams<{ id: string }>();
 
-  const [groupMovies, setGroupMovies] = useState<Movie[]>([]);
+  const [groupMovies, setGroupMovies] = useState<GroupMovie[]>([]);
   const [members, setMembers] = useState<User[]>([]);
   const [groupName, setGroupName] = useState<string>(""); // Placeholder, ideally fetched from backend
 
@@ -24,14 +24,37 @@ export default function GroupDetail() {
     load()
   },[id])
 
-  const load = async ()=> {
-    try{
-  const res = await axiosInstance.get(`${BACKEND_BASE}/api/groups/${id}`)
-      setGroupMovies(res.data.movies || []);
+
+  const load = async () => {
+    try {
+      const res = await axiosInstance.get(`${BACKEND_BASE}/api/groups/${id}`);
+      const groupMovieLinks = res.data.groupMovieLinks || [];
+
+      // Fetch TMDB details for each movie in parallel
+      const tmdbPromises = groupMovieLinks.map((link: any) =>
+        axios.get(`https://api.themoviedb.org/3/movie/${link.movie.id}`, {
+          params: { api_key: TMDB_API_KEY },
+        })
+          .then(tmdbRes => ({
+            ...link,
+            poster_path: tmdbRes.data.poster_path,
+            vote_average: tmdbRes.data.vote_average,
+          }))
+          .catch(() => ({
+            ...link,
+            poster_path: null,
+            vote_average: 0,
+          }))
+      );
+
+      const groupMoviesWithDetails = await Promise.all(tmdbPromises);
+      setGroupMovies(groupMoviesWithDetails);
       setMembers(res.data.members || []);
       setGroupName(res.data.name || "");
-    }catch(e){ console.error(e) }
-  }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   
   return (
@@ -64,11 +87,13 @@ export default function GroupDetail() {
           <div className="flex-1">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {groupMovies.map((movie) => (
-                <div key={movie.id} onClick={() => setLocation(`/groups/${id}/movie/${movie.id}`)} className="cursor-pointer">
+                <div key={movie.id} onClick={() => setLocation(`/groups/${id}/movie/${movie.movie.id}`)} className="cursor-pointer">
                   <GroupMovieCard
-                    {...movie}
+                    groupMovie={movie}
                     groupId={id}
-                    onVote={(vote) => console.log('Voted:', vote, 'on', movie.title)}
+                    poster_path={movie.poster_path}
+                    vote_average={movie.vote_average}
+                    onVote={(vote) => console.log('Voted:', vote, 'on', movie.movie.title)}
                   />
                 </div>
               ))}

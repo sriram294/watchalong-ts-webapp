@@ -13,9 +13,17 @@ import { Movie } from "@/types/movie";
 import { Group } from "@/types/group";
 
 export default function Dashboard() {
+
+  
+  const [watchlistMovieIds, setWatchlistMovieIds] = useState<number[]>([]);
+  const [showModal, setShowModal] = useState(false)
+  const [selectedGroups, setSelectedGroups] = useState<(string | number)[]>([])
+  const selectedMovieRef = useRef<Movie | null>(null)
+  const [groups, setGroups] = useState<Group[]>([])
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [createGroupError, setCreateGroupError] = useState<string | null>(null);
+
   const handleCreateGroup = async (groupName: string) => {
     setCreatingGroup(true);
     setCreateGroupError(null);
@@ -30,12 +38,6 @@ export default function Dashboard() {
       setCreatingGroup(false);
     }
   };
-  const [movies, setMovies] = useState([]);
-  const [watchlistMovieIds, setWatchlistMovieIds] = useState<number[]>([]);
-  const [showModal, setShowModal] = useState(false)
-  const [selectedGroups, setSelectedGroups] = useState<(string | number)[]>([])
-  const selectedMovieRef = useRef<Movie | null>(null)
-  const [groups, setGroups] = useState<Group[]>([])
 
   useEffect(() => {
     const fetchWatchlist = async () => {
@@ -76,7 +78,7 @@ export default function Dashboard() {
 
   const handleAddToGroups = async () => {
     if (selectedMovieRef.current) {
-      await sharedAddMovieToGroups(selectedGroups, selectedMovieRef.current);
+      await sharedAddMovieToGroups(selectedGroups, selectedMovieRef.current.id, selectedMovieRef.current.title);
       setShowModal(false);
       setSelectedGroups([]);
     }

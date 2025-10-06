@@ -19,14 +19,14 @@ export async function fetchGroups(): Promise<any[]> {
 
 export async function addMovieToGroups(
   groupIds: (string | number)[],
-  movie: Movie
+  id: number,
+  title: string
 ): Promise<void> {
   for (const groupId of groupIds) {
     try {
   await axiosInstance.post(
-    `${BACKEND_BASE}/api/groups/${groupId}/add-movie`,
-    movie,
-    { headers: { "Content-Type": "application/json" } }
+    `${BACKEND_BASE}/api/groups/${groupId}/add-movie`,null,
+    { params: { id, title }, headers: { "Content-Type": "application/x-www-form-urlencoded" } }
   );
     } catch (err: any) {
       if (err.response && err.response.status === 302) {

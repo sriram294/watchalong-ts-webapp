@@ -63,7 +63,7 @@ export default function Watchlist() {
 
   const handleAddToGroups = async () => {
     if (selectedMovieRef.current) {
-      await sharedAddMovieToGroups(selectedGroups, selectedMovieRef.current);
+      await sharedAddMovieToGroups(selectedGroups, selectedMovieRef.current.id, selectedMovieRef.current.title);
       alert('Added to selected groups');
       setShowModal(false);
       setSelectedGroups([]);
