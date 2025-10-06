@@ -1,15 +1,15 @@
+import axiosInstance from "@/lib/axios";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MovieCard } from "./MovieCard"; // adjust import
 import { Movie } from "@/types/movie";
-import { BACKEND_BASE } from "../../../config";
+import { BACKEND_BASE } from "../config";
 import axios from "axios";
-
 interface MovieSectionProps {
   title: string;
   movies: Movie[];
-  onAddToWatchlist?: (movieId: number) => void;
+  onAddToWatchlist?: (movieId: number, title: string) => void;
   onAddToGroup?: (movie: Movie) => void;
 }
 export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: MovieSectionProps) {
@@ -70,7 +70,7 @@ export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: 
           >
             <MovieCard
               {...movie}
-              onAddToWatchlist={() => onAddToWatchlist?.(movie.id)}
+              onAddToWatchlist={() => onAddToWatchlist?.(movie.id, movie.title)}
               onAddToGroup={() => onAddToGroup?.(movie)}
             />
           </div>

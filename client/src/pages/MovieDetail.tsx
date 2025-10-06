@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { TMDB_API_KEY } from "../../../config";
+import axiosInstance from "@/lib/axios";
+import { TMDB_API_KEY } from "../config";
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { onAddToWatchlist } from "@/lib/watchlist";
@@ -18,7 +18,7 @@ export default function MovieDetail({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     if (!id) return;
-    axios
+    axiosInstance
       .get(`https://api.themoviedb.org/3/movie/${id}`, {
         params: { api_key: TMDB_API_KEY },
       })
@@ -29,7 +29,7 @@ export default function MovieDetail({ params }: { params: { id: string } }) {
         setError("Failed to fetch movie details.");
       });
     // Fetch watchlist IDs
-    axios
+    axiosInstance
       .get(`/api/watchlist`, { withCredentials: true })
       .then((res) => {
         const ids = res.data.movieIds || [];
@@ -137,7 +137,6 @@ export default function MovieDetail({ params }: { params: { id: string } }) {
                     className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 bg-primary text-primary-foreground border border-primary-border min-h-8 rounded-md px-3 text-xs"
                     onClick={async () => {
                       await addMovieToGroups(selectedGroups, movie);
-                      alert('Added to selected groups');
                       setShowModal(false);
                       setSelectedGroups([]);
                     }}

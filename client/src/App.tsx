@@ -12,6 +12,7 @@ import GroupDetail from "@/pages/GroupDetail";
 import SearchPage from "@/pages/SearchPage";
 import Login from "@/pages/Login";
 import MovieDetail from "./pages/MovieDetail";
+import GroupMovieDetail from "./pages/GroupMovieDetail";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/watchlist" component={Watchlist} />
       <Route path="/groups" component={Groups} />
       <Route path="/groups/:id" component={GroupDetail} />
+      <Route path="/groups/:groupId/movie/:movieId" component={GroupMovieDetail} />
       <Route path="/movie/:id" component={MovieDetail} />
       <Route component={NotFound} />
     </Switch>

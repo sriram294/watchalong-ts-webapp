@@ -10,7 +10,7 @@ interface MovieCardProps {
   poster_path: string | null;
   vote_average: number;
   isWatchlistItem?: boolean;
-  onAddToWatchlist?: (id: number) => void;
+  onAddToWatchlist?: (id: number, title: string) => void;
   onAddToGroup?: () => void;
 }
 
@@ -29,13 +29,15 @@ export function MovieCard({
     : 'https://via.placeholder.com/500x750?text=No+Poster';
   const navigate = useNavigate();
 
-  const handleWatchlistClick = (movieid: number) => {
+  const handleWatchlistClick = (movieid: number,title: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setIsInWatchlist(!isInWatchlist);
-    onAddToWatchlist?.(movieid);
+    onAddToWatchlist?.(movieid, title);
     console.log('Watchlist toggled:', title);
   };
 
-  const handleGroupClick = () => {
+  const handleGroupClick = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     onAddToGroup?.();
     console.log('Add to group:', title);
   };
@@ -70,16 +72,16 @@ export function MovieCard({
             size="sm"
             variant={isWatchlistItem ? "default" : "outline"}
             className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
-            onClick={() => handleWatchlistClick(id)}
+            onClick={(e) => handleWatchlistClick(id, title, e)}
             data-testid={`button-watchlist-${title.toLowerCase().replace(/\s+/g, '-')}`}
           >
-            <Heart className={`w-4 h-4 ${isInWatchlist ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${isWatchlistItem ? 'fill-current' : ''}`} />
           </Button>
           <Button
             size="sm"
             variant="outline"
             className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
-            onClick={handleGroupClick}
+            onClick={(e) => handleGroupClick(e)}
             data-testid={`button-add-group-${title.toLowerCase().replace(/\s+/g, '-')}`}
           >
             <Plus className="w-4 h-4" />

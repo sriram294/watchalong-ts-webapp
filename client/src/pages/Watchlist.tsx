@@ -1,7 +1,8 @@
+import axiosInstance from "@/lib/axios";
 import { Navbar } from "@/components/Navbar";
 import { MovieCard } from "@/components/MovieCard";
 import { BottomNav } from "@/components/BottomNav";
-import { TMDB_API_KEY, BACKEND_BASE } from '../../../config';
+import { TMDB_API_KEY, BACKEND_BASE } from '../config';
 import axios from "axios";
 import { fetchGroups as sharedFetchGroups, addMovieToGroups as sharedAddMovieToGroups } from "@/lib/groups";
 import { onAddToWatchlist as sharedOnAddToWatchlist } from "@/lib/watchlist";
@@ -22,19 +23,21 @@ export default function Watchlist() {
     // Fetch watchlist IDs and then fetch movie details
     const fetchWatchlistAndMovies = async () => {
       try {
-        const res = await axios.get(`${BACKEND_BASE}/api/watchlist`, { withCredentials: true });
-        const ids: number[] = res.data.movieIds || [];
+        const res = await axiosInstance.get(`${BACKEND_BASE}/api/watchlist`);
+        // Expecting response: [{ id: "1218925", title: "..." }, ...]
+        const items: { id: string | number; title: string }[] = res.data || [];
+        const ids: number[] = items?.map(item => Number(item.id));
         setWatchlistMovieIds(ids);
 
         if (ids.length > 0) {
           // Fetch details for each movie ID in parallel
           const moviePromises = ids.map((id: number) =>
-            axios.get(`https://api.themoviedb.org/3/movie/${id}`, {
-              params: { api_key: TMDB_API_KEY }
-            }).then(res => res.data)
+            axiosInstance.get(`https://api.themoviedb.org/3/movie/${id}`, {
+              params: { api_key: TMDB_API_KEY },
+            })
           );
           const movieDetails = await Promise.all(moviePromises);
-          setMovies(movieDetails);
+          setMovies(movieDetails.map(res => res.data));
         } else {
           setMovies([]);
         }
@@ -47,9 +50,9 @@ export default function Watchlist() {
     fetchWatchlistAndMovies();
   }, []);
 
-  
-  const onAddToWatchlist = (movieId: number) => {
-    sharedOnAddToWatchlist(movieId, watchlistMovieIds);
+
+  const onAddToWatchlist = (movieId: number, title: string) => {
+    sharedOnAddToWatchlist(movieId, title, watchlistMovieIds);
   }
 
   const fetchGroups = async () => {

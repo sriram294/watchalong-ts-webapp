@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Film,
   Moon,
@@ -13,6 +13,8 @@ import {
   Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import axiosInstance from "@/lib/axios";
+import { BACKEND_BASE } from "../config";
 import { useTheme } from "@/components/ThemeProvider";
 import { Link } from "wouter";
 import { NavLink } from "react-router-dom";
@@ -27,6 +29,31 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 export function Navbar() {
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  // Check login status on mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await axiosInstance.get(`${BACKEND_BASE}/api/auth/check`);
+        setIsLoggedIn(res.data.authenticated === true);
+      } catch {
+        setIsLoggedIn(false);
+      }
+    }
+    checkAuth();
+  }, []);
+
+  // Logout function
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post(`${BACKEND_BASE}/api/auth/logout`);
+      setIsLoggedIn(false);
+      window.location.href = '/login';
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b backdrop-blur-xl bg-background/30">
@@ -119,20 +146,32 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => console.log("Profile clicked")}
-                  data-testid="menu-profile"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => console.log("Logout clicked")}
-                  data-testid="menu-logout"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
+                {isLoggedIn ? (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => console.log("Profile clicked")}
+                      data-testid="menu-profile"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      data-testid="menu-logout"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={() => window.location.href = '/login'}
+                    data-testid="menu-login"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Login
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 

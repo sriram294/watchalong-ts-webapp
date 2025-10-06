@@ -2,9 +2,12 @@ import { Star, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import axiosInstance from "@/lib/axios";
+import { BACKEND_BASE } from "@/config";
 
 interface GroupMovieCardProps {
   id: number;
+  groupId: string;
   title: string;
   poster_path: string | null;
   vote_average: number;
@@ -15,6 +18,8 @@ interface GroupMovieCardProps {
 }
 
 export function GroupMovieCard({ 
+  id,
+  groupId,
   title, 
   poster_path, 
   vote_average, 
@@ -31,21 +36,32 @@ export function GroupMovieCard({
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : 'https://via.placeholder.com/500x750?text=No+Poster';
 
-  const handleVote = (vote: 'up' | 'down') => {
-    if (userVote === vote) {
-      if (vote === 'up') setUpvotes(upvotes - 1);
-      else setDownvotes(downvotes - 1);
-      setUserVote(null);
-    } else {
-      if (userVote === 'up') setUpvotes(upvotes - 1);
-      if (userVote === 'down') setDownvotes(downvotes - 1);
-      
-      if (vote === 'up') setUpvotes(upvotes + 1);
-      else setDownvotes(downvotes + 1);
-      setUserVote(vote);
-    }
-    onVote?.(vote);
-    console.log(`Voted ${vote} on:`, title);
+  const handleVote = (vote: boolean) => {
+    // vote: true for upvote, false for downvote
+    const movieId = String(id);
+    const upvote = vote;
+    axiosInstance.post(`${BACKEND_BASE}/api/groups/${groupId}/vote`, null, {
+      params: { movieId, upvote },
+    })
+      .then(() => {
+        // Update local state for instant feedback
+        if (userVote === (upvote ? 'up' : 'down')) {
+          if (upvote) setUpvotes(upvotes - 1);
+          else setDownvotes(downvotes - 1);
+          setUserVote(null);
+        } else {
+          if (userVote === 'up') setUpvotes(upvotes - 1);
+          if (userVote === 'down') setDownvotes(downvotes - 1);
+          if (upvote) setUpvotes(upvotes + 1);
+          else setDownvotes(downvotes + 1);
+          setUserVote(upvote ? 'up' : 'down');
+        }
+        onVote?.(upvote ? 'up' : 'down');
+      })
+      .catch(err => {
+        // Optionally show error toast
+        console.error(err);
+      });
   };
 
   return (
@@ -76,7 +92,7 @@ export function GroupMovieCard({
             size="sm"
             variant={userVote === 'up' ? 'default' : 'outline'}
             className="flex-1"
-            onClick={() => handleVote('up')}
+            onClick={(e) => { e.stopPropagation(); handleVote(true); }}
             data-testid={`button-upvote-${title.toLowerCase().replace(/\s+/g, '-')}`}
           >
             <ThumbsUp className={`w-4 h-4 ${userVote === 'up' ? 'fill-current' : ''}`} />
@@ -86,7 +102,7 @@ export function GroupMovieCard({
             size="sm"
             variant={userVote === 'down' ? 'destructive' : 'outline'}
             className="flex-1"
-            onClick={() => handleVote('down')}
+            onClick={(e) => { e.stopPropagation(); handleVote(false); }}
             data-testid={`button-downvote-${title.toLowerCase().replace(/\s+/g, '-')}`}
           >
             <ThumbsDown className={`w-4 h-4 ${userVote === 'down' ? 'fill-current' : ''}`} />

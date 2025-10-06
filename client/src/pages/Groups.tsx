@@ -1,3 +1,4 @@
+import axiosInstance from "@/lib/axios";
 import { Navbar } from "@/components/Navbar";
 import { GroupCard } from "@/components/GroupCard";
 import { BottomNav } from "@/components/BottomNav";
@@ -7,17 +8,35 @@ import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { Group } from "@/types/group";
 import axios from "axios";
-import { BACKEND_BASE } from "../../../config";
+import { BACKEND_BASE } from "../config";
+import { CreateGroupModal } from "@/components/CreateGroupModal";
 
 export default function Groups() {
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [creatingGroup, setCreatingGroup] = useState(false);
+  const [createGroupError, setCreateGroupError] = useState<string | null>(null);
+  const handleCreateGroup = async (groupName: string) => {
+    setCreatingGroup(true);
+    setCreateGroupError(null);
+    try {
+      const { createGroup } = await import("@/lib/createGroup");
+      await createGroup(groupName);
+      setShowCreateGroupModal(false);
+      fetchGroups().then(setGroups);
+    } catch (err) {
+      setCreateGroupError("Failed to create group");
+    } finally {
+      setCreatingGroup(false);
+    }
+  };
   const [, setLocation] = useLocation();
   const [groups, setGroups] = useState<Group[]>([]);
 
 
   const fetchGroups = async () => {
     try {
-      const res = await axios.get(
-        `${BACKEND_BASE}/api/groups/fetchGroups`, { withCredentials: true } // important for sending session cookies
+  const res = await axiosInstance.get(
+  `${BACKEND_BASE}/api/groups/fetchGroups` // important for sending session cookies
       );
 
       // If we get here, we are logged in and have the data
@@ -31,9 +50,6 @@ export default function Groups() {
         movieCount: g.movies?.length || 0,
       }));
     } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-    window.location.href = `${BACKEND_BASE}/oauth2/authorization/google`;
-  }
     }
   }
 
@@ -54,11 +70,18 @@ export default function Groups() {
               {groups?.length} groups joined
             </p>
           </div>
-          <Button onClick={() => console.log('Create group')} data-testid="button-create-group">
+          <Button onClick={() => setShowCreateGroupModal(true)} data-testid="button-create-group">
             <Plus className="w-4 h-4 mr-2" />
             Create Group
           </Button>
         </div>
+        <CreateGroupModal
+          open={showCreateGroupModal}
+          onClose={() => { setShowCreateGroupModal(false); setCreateGroupError(null); }}
+          onCreate={handleCreateGroup}
+          loading={creatingGroup}
+          error={createGroupError}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {groups?.map((group) => (

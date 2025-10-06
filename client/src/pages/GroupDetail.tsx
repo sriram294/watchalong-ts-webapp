@@ -1,3 +1,4 @@
+import axiosInstance from "@/lib/axios";
 import { Navbar } from "@/components/Navbar";
 import { GroupMovieCard } from "@/components/GroupMovieCard";
 import { MemberList } from "@/components/MemberList";
@@ -9,7 +10,7 @@ import { useEffect, useState } from "react";
 import { Movie } from "@/types/movie";
 import { User } from "@/types/user";
 import axios from "axios";
-import { BACKEND_BASE } from "../../../config";
+import { BACKEND_BASE } from "../config";
 
 export default function GroupDetail() {
   const [, setLocation] = useLocation();
@@ -25,7 +26,7 @@ export default function GroupDetail() {
 
   const load = async ()=> {
     try{
-      const res = await axios.get(`${BACKEND_BASE}/api/groups/${id}`,{withCredentials:true})
+  const res = await axiosInstance.get(`${BACKEND_BASE}/api/groups/${id}`)
       setGroupMovies(res.data.movies || []);
       setMembers(res.data.members || []);
       setGroupName(res.data.name || "");
@@ -63,11 +64,13 @@ export default function GroupDetail() {
           <div className="flex-1">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {groupMovies.map((movie) => (
-                <GroupMovieCard
-                  key={movie.id}
-                  {...movie}
-                  onVote={(vote) => console.log('Voted:', vote, 'on', movie.title)}
-                />
+                <div key={movie.id} onClick={() => setLocation(`/groups/${id}/movie/${movie.id}`)} className="cursor-pointer">
+                  <GroupMovieCard
+                    {...movie}
+                    groupId={id}
+                    onVote={(vote) => console.log('Voted:', vote, 'on', movie.title)}
+                  />
+                </div>
               ))}
             </div>
           </div>
