@@ -13,6 +13,8 @@ import SearchPage from "@/pages/SearchPage";
 import Login from "@/pages/Login";
 import MovieDetail from "./pages/MovieDetail";
 import GroupMovieDetail from "./pages/GroupMovieDetail";
+import JoinGroup from "./pages/JoinGroup";
+import { UserProvider } from "./context/UserContext";
 
 function Router() {
   return (
@@ -25,6 +27,7 @@ function Router() {
       <Route path="/groups/:id" component={GroupDetail} />
       <Route path="/groups/:groupId/movie/:movieId" component={GroupMovieDetail} />
       <Route path="/movie/:id" component={MovieDetail} />
+      <Route path="/join" component={JoinGroup} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -35,8 +38,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
+          <UserProvider>
           <Toaster />
           <Router />
+          </UserProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

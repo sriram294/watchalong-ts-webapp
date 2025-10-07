@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import axiosInstance from "@/lib/axios";
 import { BACKEND_BASE } from "@/config";
+import { useUser } from "@/context/UserContext";
 
 interface GroupMovieCardProps {
   groupMovie: GroupMovie;
@@ -18,16 +19,27 @@ interface GroupMovieCardProps {
 
 export function GroupMovieCard(props: GroupMovieCardProps) {
   const { groupMovie, groupId, poster_path, vote_average, onVote } = props;
-  const [userVote, setUserVote] = useState<'up' | 'down' | null>();
-  const [upvotes, setUpvotes] = useState(groupMovie.upvotedBy.length);
-  const [downvotes, setDownvotes] = useState(groupMovie.downvotedBy.length);
+  
+  const user = useUser();
+  // Determine initial vote state
+  const initialVote: 'up' | 'down' | null = user && groupMovie.upvotedBy?.includes(String(user))
+    ? 'up'
+    : user && groupMovie.downvotedBy?.includes(String(user))
+      ? 'down'
+      : null;
+  const [userVote, setUserVote] = useState<'up' | 'down' | null>(initialVote);
+  const [upvotes, setUpvotes] = useState(groupMovie.upvotedBy?.length ?? 0);
+  const [downvotes, setDownvotes] = useState(groupMovie.downvotedBy?.length ?? 0);
 
   const imageUrl = poster_path
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : 'https://via.placeholder.com/500x750?text=No+Poster';
 
   const handleVote = (vote: boolean) => {
-    // vote: true for upvote, false for downvote
+    // Prevent duplicate voting
+    if ((vote && userVote === 'up') || (!vote && userVote === 'down')) {
+      return;
+    }
     const movieId = String(groupMovie.movie.id);
     const upvote = vote;
     axiosInstance.post(`${BACKEND_BASE}/api/groups/${groupId}/vote`, null, {
@@ -36,9 +48,8 @@ export function GroupMovieCard(props: GroupMovieCardProps) {
       .then(() => {
         // Update local state for instant feedback
         if (userVote === (upvote ? 'up' : 'down')) {
-          if (upvote) setUpvotes(upvotes - 1);
-          else setDownvotes(downvotes - 1);
-          setUserVote(null);
+          // Should not happen due to guard, but keep for safety
+          return;
         } else {
           if (userVote === 'up') setUpvotes(upvotes - 1);
           if (userVote === 'down') setDownvotes(downvotes - 1);
@@ -81,6 +92,7 @@ export function GroupMovieCard(props: GroupMovieCardProps) {
             className="flex-1"
             onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); handleVote(true); }}
             data-testid={`button-upvote-${groupMovie.movie.title.toLowerCase().replace(/\s+/g, '-')}`}
+            disabled={userVote === 'up'}
           >
             <ThumbsUp className={`w-4 h-4 ${userVote === 'up' ? 'fill-current' : ''}`} />
             <span className="ml-1 text-xs" data-testid={`text-upvotes-${groupMovie.movie.title.toLowerCase().replace(/\s+/g, '-')}`}>{upvotes}</span>
@@ -91,6 +103,7 @@ export function GroupMovieCard(props: GroupMovieCardProps) {
             className="flex-1"
             onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); handleVote(false); }}
             data-testid={`button-downvote-${groupMovie.movie.title.toLowerCase().replace(/\s+/g, '-')}`}
+            disabled={userVote === 'down'}
           >
             <ThumbsDown className={`w-4 h-4 ${userVote === 'down' ? 'fill-current' : ''}`} />
             <span className="ml-1 text-xs" data-testid={`text-downvotes-${groupMovie.movie.title.toLowerCase().replace(/\s+/g, '-')}`}>{downvotes}</span>

@@ -1,10 +1,11 @@
 import { User } from "./user";
+import { GroupMovie } from "./groupmovie";
 
 export interface Group {
-  id: string;
+  id: number | string;
   name: string;
-  memberCount: number;
-  movieCount: number;
+  inviteCode: string;
   members: User[];
-  // Add other properties if needed
-};
+  createdBy: string | null;
+  groupMovieLinks: GroupMovie[];
+}

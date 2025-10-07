@@ -6,17 +6,16 @@ import { User } from "@/types/user";
 
 
 
-interface GroupCardProps {
-  id: string;
-  name: string;
-  memberCount: number;
-  movieCount: number;
-  members: User[];
+import { Group } from "@/types/group";
+
+interface GroupCardProps extends Group {
   onEnter: () => void;
 }
 
-export function GroupCard({ name, memberCount, movieCount, members, onEnter }: GroupCardProps) {
+export function GroupCard({ name, members, groupMovieLinks, onEnter }: GroupCardProps) {
   const visibleMembers = members.slice(0, 5);
+  const memberCount = members.length;
+  const movieCount = groupMovieLinks.length;
   const remainingCount = memberCount - 5;
 
   return (

@@ -10,5 +10,7 @@ export interface GroupMovie {
     vote_average: number;
 	upvotedByNames: string[];
 	downvotedByNames: string[];
+	upvotedBy?: string[];
+	downvotedBy?: string[];
 	reviews: any[];
 }

@@ -107,8 +107,8 @@ export default function GroupMovieDetail() {
                 {groupMovie.upvotedByNames.length === 0 ? (
                   <span className="text-muted-foreground text-sm">No upvotes yet.</span>
                 ) : (
-                  groupMovie.upvotedByNames.map((member) => (
-                    <div className="flex items-center gap-2 px-2 py-1 bg-background/60 rounded shadow">
+                  groupMovie.upvotedByNames.map((member, idx) => (
+                    <div key={member + '-' + idx} className="flex items-center gap-2 px-2 py-1 bg-background/60 rounded shadow">
                       <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-bold">{member[0]}</span>
                       <span className="text-sm">{member}</span>
                     </div>
@@ -122,8 +122,8 @@ export default function GroupMovieDetail() {
                 {groupMovie.downvotedByNames.length === 0 ? (
                   <span className="text-muted-foreground text-sm">No downvotes yet.</span>
                 ) : (
-                  groupMovie.downvotedByNames.map((member) => (
-                    <div className="flex items-center gap-2 px-2 py-1 bg-background/60 rounded shadow">
+                  groupMovie.downvotedByNames.map((member, idx) => (
+                    <div key={member + '-' + idx} className="flex items-center gap-2 px-2 py-1 bg-background/60 rounded shadow">
                       <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-bold">{member[0]}</span>
                       <span className="text-sm">{member}</span>
                     </div>

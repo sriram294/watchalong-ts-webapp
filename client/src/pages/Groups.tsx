@@ -44,10 +44,10 @@ export default function Groups() {
       return res.data.map((g: any) => ({
         id: g.id,
         name: g.name,
+        inviteCode: g.inviteCode,
         members: g.members,
-        movies: g.movies,
-        memberCount: g.members?.length || 0,
-        movieCount: g.movies?.length || 0,
+        createdBy: g.createdBy,
+        groupMovieLinks: g.groupMovieLinks,
       }));
     } catch (err: any) {
     }
