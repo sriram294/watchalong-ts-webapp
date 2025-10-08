@@ -1,2 +1,2 @@
 export const TMDB_API_KEY = 'a6876d4405f24cb24dcbc98da14b0374';
-export const BACKEND_BASE = 'http://localhost:8080'; // adjust if needed
+const BACKEND_BASE = import.meta.env.VITE_BACKEND_BASE;
