@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "@/lib/axios";
-import { TMDB_API_KEY } from "../config";
+import { BACKEND_BASE, TMDB_API_KEY } from "../config";
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { onAddToWatchlist } from "@/lib/watchlist";
@@ -30,7 +30,7 @@ export default function MovieDetail({ params }: { params: { id: string } }) {
       });
     // Fetch watchlist IDs
     axiosInstance
-      .get(`/api/watchlist`, { withCredentials: true })
+      .get(`${BACKEND_BASE}/api/watchlist`, { withCredentials: true })
       .then((res) => {
         const ids = res.data.movieIds || [];
         setWatchlistMovieIds(ids);
@@ -76,7 +76,7 @@ export default function MovieDetail({ params }: { params: { id: string } }) {
                 <div className="mt-2 flex flex-wrap gap-2 justify-center md:justify-start">
                     <button
                     className="flex items-center gap-2 px-3 py-2 rounded-md transition hover-elevate active-elevate-2 border border-primary backdrop-blur-xl bg-background/50 text-primary font-medium"
-                    onClick={() => onAddToWatchlist(movie.id, watchlistMovieIds)}
+                    onClick={() => onAddToWatchlist(movie.id,movie.title, watchlistMovieIds)}
                   >
                     
                     <Heart className={`w-4 h-4 ${watchlistMovieIds.includes(movie.id) ? 'fill-current' : ''}`} />
@@ -136,7 +136,7 @@ export default function MovieDetail({ params }: { params: { id: string } }) {
                   <button
                     className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 bg-primary text-primary-foreground border border-primary-border min-h-8 rounded-md px-3 text-xs"
                     onClick={async () => {
-                      await addMovieToGroups(selectedGroups, movie);
+                      await addMovieToGroups(selectedGroups, movie.id, movie.title);
                       setShowModal(false);
                       setSelectedGroups([]);
                     }}
