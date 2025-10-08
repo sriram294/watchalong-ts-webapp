@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BACKEND_BASE } from "@/config";
 import { Film } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 
 export default function Login() {
   const handleGoogleLogin = () => {
-          window.location.href = "http://localhost:8080/oauth2/authorization/google";
+          window.location.href = `${BACKEND_BASE}/oauth2/authorization/google`;
   };
 
   return (
