@@ -2,13 +2,12 @@ import { Navbar } from "@/components/Navbar";
 import { SearchBar } from "@/components/SearchBar";
 import { MovieCard } from "@/components/MovieCard";
 import { BottomNav } from "@/components/BottomNav";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BACKEND_BASE, TMDB_API_KEY } from "../config";
-import axios from "axios";
-import { HeroSection } from "@/components/HeroSection";
 import { Movie } from "@/types/movie";
 import { fetchGroups as sharedFetchGroups, addMovieToGroups as sharedAddMovieToGroups } from "@/lib/groups";
 import { onAddToWatchlist as sharedOnAddToWatchlist } from "@/lib/watchlist";
+import axiosInstance from "@/lib/axios";
 
 
 
@@ -19,14 +18,14 @@ export default function SearchPage() {
   const [groups, setGroups] = useState<any[]>([]);
   const selectedMovieRef = useState<Movie | null>(null);
   // Fetch watchlist IDs on mount
-  useState(() => {
-    axios.get(`${BACKEND_BASE}/api/watchlist`).then(res => {
+  useEffect(() => {
+    axiosInstance.get(`${BACKEND_BASE}/api/watchlist`).then(res => {
       const ids = res.data.movieIds || [];
       setWatchlistMovieIds(ids);
     });
   }, []);
-  const onAddToWatchlist = (movieId: number) => {
-    sharedOnAddToWatchlist(movieId, watchlistMovieIds);
+  const onAddToWatchlist = (movie: Movie) => {
+    sharedOnAddToWatchlist(movie.id, movie.title, watchlistMovieIds);
   };
 
   const fetchGroups = async () => {
@@ -42,7 +41,11 @@ export default function SearchPage() {
 
   const handleAddToGroups = async () => {
     if (selectedMovieRef[0]) {
-      await sharedAddMovieToGroups(selectedGroups, selectedMovieRef[0]);
+      await sharedAddMovieToGroups(
+        selectedGroups,
+        selectedMovieRef[0].id,
+        selectedMovieRef[0].title
+      );
       setShowModal(false);
       setSelectedGroups([]);
     }
@@ -60,16 +63,14 @@ export default function SearchPage() {
 
   const searchMovies = async (query : string) => {
 try {
-      const res = await axios.get(
+      const res = await axiosInstance.get(
         `https://api.themoviedb.org/3/search/movie?query=${query}&include_adult=true&language=en-US&page=1&api_key=${TMDB_API_KEY}` // important for sending session cookies
       );
 
      setSearchResults( (res.data.results || []).filter((movie: any) => movie.original_language === "en") );
       console.log(res.data);
     } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-    window.location.href = `${BACKEND_BASE}/oauth2/authorization/google`;
-  }
+      
     }
   
 }
@@ -94,7 +95,7 @@ try {
               <MovieCard
                 key={movie.id}
                 {...movie}
-                onAddToWatchlist={() => onAddToWatchlist(movie.id)}
+                onAddToWatchlist={() => onAddToWatchlist(movie)}
                 onAddToGroup={() => openGroupList(movie)}
               />
             ))}

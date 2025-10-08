@@ -1,36 +1,47 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import axiosInstance from "@/lib/axios";
 import { BACKEND_BASE } from "../config";
 import { Button } from "@/components/ui/button";
-import { useUser } from "@/context/UserContext";
+import axios from "axios";
 
 export default function JoinGroup() {
   const [location, setLocation] = useLocation();
   const [status, setStatus] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const user = useUser();
 
   // Get inviteCode from URL
   const params = new URLSearchParams(window.location.search);
   const inviteCode = params.get("inviteCode");
 
-  // Redirect to login if not logged in
   useEffect(() => {
     if (!inviteCode) {
       setStatus("No invite code provided.");
       return;
     }
     setLoading(true);
-    axiosInstance.post(`${BACKEND_BASE}/api/groups/join?inviteCode=${encodeURIComponent(inviteCode)}`)
+    // Check login status
+    axios.get(`${BACKEND_BASE}/api/auth/check`,{ withCredentials: true }) // Ensure cookies are sent
+      .then((res) => {
+        if (res.data && res.data.authenticated) {
+          // User is logged in, proceed to join group
+          return axios.post(`${BACKEND_BASE}/api/groups/join?inviteCode=${encodeURIComponent(inviteCode)}`, null,{ withCredentials: true });
+        } else {
+          // Not logged in, redirect to backend OAuth login with target url
+          const targetUrl = window.location.pathname + window.location.search;
+          window.location.href = `${BACKEND_BASE}/oauth2/authorization/google?targetUrl=${encodeURIComponent(targetUrl)}`;
+          throw new Error("Redirecting to login");
+        }
+      })
       .then(() => {
         setStatus("Successfully joined the group!");
       })
-      .catch(() => {
-        setStatus("Failed to join group. Invalid or expired invite code.");
+      .catch((err) => {
+        if (err.message !== "Redirecting to login") {
+          setStatus("Failed to join group. Invalid or expired invite code.");
+        }
       })
       .finally(() => setLoading(false));
-  }, [inviteCode, user]);
+  }, [inviteCode]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background">
