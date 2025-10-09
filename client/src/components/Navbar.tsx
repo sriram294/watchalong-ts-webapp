@@ -75,7 +75,7 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             
             <NavLink
-              to="/"
+              to="/dashboard"
               className={({ isActive }) =>
                 "flex items-center gap-2 px-3 py-2 rounded-md transition hover-elevate active-elevate-2" +
                 (isActive ? "border border-primary backdrop-blur-xl bg-background/50 text-primary" : "")

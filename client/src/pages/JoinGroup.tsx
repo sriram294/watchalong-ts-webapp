@@ -12,6 +12,7 @@ export default function JoinGroup() {
   // Get inviteCode from URL
   const params = new URLSearchParams(window.location.search);
   const inviteCode = params.get("inviteCode");
+  const token = localStorage.getItem("jwt_token");
 
   useEffect(() => {
     if (!inviteCode) {
@@ -20,11 +21,15 @@ export default function JoinGroup() {
     }
     setLoading(true);
     // Check login status
-    axios.get(`${BACKEND_BASE}/api/auth/check`,{ withCredentials: true }) // Ensure cookies are sent
+    axios.get(`${BACKEND_BASE}/api/auth/check`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then((res) => {
         if (res.data && res.data.authenticated) {
           // User is logged in, proceed to join group
-          return axios.post(`${BACKEND_BASE}/api/groups/join?inviteCode=${encodeURIComponent(inviteCode)}`, null,{ withCredentials: true });
+          return axios.post(`${BACKEND_BASE}/api/groups/join?inviteCode=${encodeURIComponent(inviteCode)}`, null, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
         } else {
           // Not logged in, redirect to backend OAuth login with target url
           const targetUrl = window.location.pathname + window.location.search;
