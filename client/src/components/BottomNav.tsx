@@ -6,7 +6,7 @@ export function BottomNav() {
   const [location] = useLocation();
 
   const navItems = [
-    { href: "/", icon: Home, label: "Home" },
+    { href: "/dashboard", icon: Home, label: "Home" },
     { href: "/search", icon: Search, label: "Search" },
     { href: "/watchlist", icon: Heart, label: "Watchlist" },
     { href: "/groups", icon: Users, label: "Groups" },
