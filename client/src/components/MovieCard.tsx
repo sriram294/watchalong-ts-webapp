@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MovieCardProps {
   id: number;
@@ -28,18 +29,17 @@ export function MovieCard({
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : 'https://via.placeholder.com/500x750?text=No+Poster';
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
-  const handleWatchlistClick = (movieid: number,title: string, e?: React.MouseEvent) => {
+  const handleWatchlistClick = (movieid: number, title: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setIsInWatchlist(!isInWatchlist);
     onAddToWatchlist?.(movieid, title);
-    console.log('Watchlist toggled:', title);
   };
 
   const handleGroupClick = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     onAddToGroup?.();
-    console.log('Add to group:', title);
   };
 
   const handleCardClick = () => {
@@ -67,35 +67,56 @@ export function MovieCard({
           <span className="text-xs font-semibold">{vote_average.toFixed(1)}</span>
         </Badge>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center gap-2 pb-4">
-          <Button
-            size="sm"
-            variant={isWatchlistItem ? "default" : "outline"}
-            className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
-            onClick={(e) => handleWatchlistClick(id, title, e)}
-            data-testid={`button-watchlist-${title.toLowerCase().replace(/\s+/g, '-')}`}
-          >
-            <Heart className={`w-4 h-4 ${isWatchlistItem ? 'fill-current' : ''}`} />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
-            onClick={(e) => handleGroupClick(e)}
-            data-testid={`button-add-group-${title.toLowerCase().replace(/\s+/g, '-')}`}
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
+        {/* Mobile: show buttons at top-right. Desktop: show on hover at bottom. */}
+        {isMobile ? (
+          <div className="absolute top-2 right-2 flex gap-2 z-10">
+            <Button
+              size="sm"
+              variant={isWatchlistItem ? "default" : "outline"}
+              className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
+              onClick={(e) => handleWatchlistClick(id, title, e)}
+              data-testid={`button-watchlist-${title.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <Heart className={`w-4 h-4 ${isWatchlistItem ? 'fill-current' : ''}`} />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
+              onClick={(e) => handleGroupClick(e)}
+              data-testid={`button-add-group-${title.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center gap-2 pb-4">
+            <Button
+              size="sm"
+              variant={isWatchlistItem ? "default" : "outline"}
+              className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
+              onClick={(e) => handleWatchlistClick(id, title, e)}
+              data-testid={`button-watchlist-${title.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <Heart className={`w-4 h-4 ${isWatchlistItem ? 'fill-current' : ''}`} />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
+              onClick={(e) => handleGroupClick(e)}
+              data-testid={`button-add-group-${title.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+
+        <div className="mt-2">
+          <h3 className="font-semibold text-sm line-clamp-2" data-testid={`text-title-${title.toLowerCase().replace(/\s+/g, '-')}`}>{title}</h3>
         </div>
-      <div className="mt-2">
-        <h3 className="font-semibold text-sm line-clamp-2" data-testid={`text-title-${title.toLowerCase().replace(/\s+/g, '-')}`}>
-          {title}
-        </h3>
       </div>
-
-      </div>
-
-      
     </div>
   );
 }
+// ...existing code...
