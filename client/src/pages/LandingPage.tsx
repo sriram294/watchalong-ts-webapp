@@ -20,6 +20,11 @@ export default function LandingPage() {
   useEffect(() => {
     // Try to fetch and store JWT from fragment
     const stored = getJwtFromFragment();
+    const jwt = localStorage.getItem("jwt_token");
+    if (!stored && !jwt) {
+      setLocation("/login");
+      return;
+    }
     // Redirect to dashboard after storing JWT (or immediately if not present)
     setTimeout(() => {
       setLocation("/dashboard");
