@@ -1,20 +1,24 @@
 import axios from "axios";
 import { BACKEND_BASE } from "../config";
 
-
+// Utility to get JWT token from localStorage
+function getJwtToken() {
+  return localStorage.getItem("jwt_token");
+}
 
 const axiosInstance = axios.create();
 
+// Add JWT Authorization header if token exists
 axiosInstance.interceptors.request.use((config) => {
-  // Only add withCredentials for backend calls
-  if (typeof config.url === 'string' && config.url.startsWith(BACKEND_BASE)) {
-    config.withCredentials = true;
-  } else {
-    config.withCredentials = false;
+  const token = getJwtToken();
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers["Authorization"] = `Bearer ${token}`;
   }
   return config;
 });
 
+// Optional: Redirect to login on 401
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {

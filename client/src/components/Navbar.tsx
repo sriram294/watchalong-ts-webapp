@@ -49,6 +49,8 @@ export function Navbar() {
     try {
       await axiosInstance.post(`${BACKEND_BASE}/api/auth/logout`);
       setIsLoggedIn(false);
+      // Remove JWT from localStorage
+      localStorage.removeItem("jwt_token");
       window.location.href = '/login';
     } catch (err) {
       console.error('Logout failed', err);

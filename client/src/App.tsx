@@ -15,12 +15,14 @@ import MovieDetail from "./pages/MovieDetail";
 import GroupMovieDetail from "./pages/GroupMovieDetail";
 import JoinGroup from "./pages/JoinGroup";
 import { UserProvider } from "./context/UserContext";
+import LandingPage from "./pages/LandingPage";
 
 function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
-      <Route path="/" component={Dashboard} />
+      <Route path="/" component={LandingPage} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/search" component={SearchPage} />
       <Route path="/watchlist" component={Watchlist} />
       <Route path="/groups" component={Groups} />
