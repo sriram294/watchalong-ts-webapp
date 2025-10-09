@@ -18,7 +18,7 @@ export default function Login() {
               <Film className="w-8 h-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-display" data-testid="text-login-title">MovieShare</CardTitle>
+          <CardTitle className="text-3xl font-display" data-testid="text-login-title">Watchalong</CardTitle>
           <CardDescription data-testid="text-login-description">
             Discover and share movies with friends
           </CardDescription>
