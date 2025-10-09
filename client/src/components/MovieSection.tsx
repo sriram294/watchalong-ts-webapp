@@ -29,7 +29,7 @@ export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: 
   };
 
   return (
-    <div className="mb-12">
+    <div className="mb-8">
       {/* Header with controls */}
       <div className="flex items-center justify-between mb-6">
         <h2
