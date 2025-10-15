@@ -14,7 +14,7 @@ export function HeroSection() {
       
       <div className="relative z-10 text-center px-4 w-full max-w-4xl">
         <h1 className="text-4xl md:text-6xl font-display mb-4 text-foreground" data-testid="text-hero-title">
-          No Simbu Movies available
+          Discover, Share, and Enjoy Movies Together
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground mb-8" data-testid="text-hero-subtitle">
           Watch together, vote on favorites, and create the perfect movie night
