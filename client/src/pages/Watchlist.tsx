@@ -2,42 +2,33 @@ import axiosInstance from "@/lib/axios";
 import { Navbar } from "@/components/Navbar";
 import { MovieCard } from "@/components/MovieCard";
 import { BottomNav } from "@/components/BottomNav";
-import { TMDB_API_KEY, BACKEND_BASE } from '../config';
-import axios from "axios";
+import { BACKEND_BASE } from '../config';
+import { movieProvider } from "@/lib/movieProvider";
 import { fetchGroups as sharedFetchGroups, addMovieToGroups as sharedAddMovieToGroups } from "@/lib/groups";
 import { onAddToWatchlist as sharedOnAddToWatchlist } from "@/lib/watchlist";
 import { useEffect, useRef, useState } from "react";
-import { Movie } from "@/types/movie";
+import type { NormalizedMovie } from "@/types/movie";
 import { Group } from "@/types/group";
 
 export default function Watchlist() {
- 
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [movies, setMovies] = useState<NormalizedMovie[]>([]);
   const [watchlistMovieIds, setWatchlistMovieIds] = useState<number[]>([]);
   const [showModal, setShowModal] = useState(false)
   const [selectedGroups, setSelectedGroups] = useState<(string | number)[]>([])
-  const selectedMovieRef = useRef<Movie | null>(null)
+  const selectedMovieRef = useRef<NormalizedMovie | null>(null)
   const [groups, setGroups] = useState<Group[]>([])
 
   useEffect(() => {
-    // Fetch watchlist IDs and then fetch movie details
     const fetchWatchlistAndMovies = async () => {
       try {
         const res = await axiosInstance.get(`${BACKEND_BASE}/api/watchlist`);
-        // Expecting response: [{ id: "1218925", title: "..." }, ...]
         const items: { id: string | number; title: string }[] = res.data || [];
         const ids: number[] = items?.map(item => Number(item.id));
         setWatchlistMovieIds(ids);
 
         if (ids.length > 0) {
-          // Fetch details for each movie ID in parallel
-          const moviePromises = ids.map((id: number) =>
-            axiosInstance.get(`https://api.themoviedb.org/3/movie/${id}`, {
-              params: { api_key: TMDB_API_KEY },
-            })
-          );
-          const movieDetails = await Promise.all(moviePromises);
-          setMovies(movieDetails.map(res => res.data));
+          const movieDetails = await Promise.all(ids.map(id => movieProvider.getDetails(id)));
+          setMovies(movieDetails);
         } else {
           setMovies([]);
         }
@@ -50,7 +41,6 @@ export default function Watchlist() {
     fetchWatchlistAndMovies();
   }, []);
 
-
   const onAddToWatchlist = (movieId: number, title: string) => {
     sharedOnAddToWatchlist(movieId, title, watchlistMovieIds);
   }
@@ -58,7 +48,6 @@ export default function Watchlist() {
   const fetchGroups = async () => {
     const groupsData = await sharedFetchGroups();
     setGroups(groupsData);
-    console.log('Fetched groups:', groupsData);
   }
 
   const handleAddToGroups = async () => {
@@ -70,7 +59,6 @@ export default function Watchlist() {
     }
   }
 
-
   const handleGroupSelect = (groupId: any) => {
     setSelectedGroups(prev =>
       prev.includes(groupId)
@@ -79,17 +67,16 @@ export default function Watchlist() {
     )
   }
 
-  const openGroupList = (movie: Movie) => {
+  const openGroupList = (movie: NormalizedMovie) => {
     selectedMovieRef.current = movie
     fetchGroups()
     setShowModal(true)
   }
 
-
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2" data-testid="text-watchlist-title">My Watchlist</h1>
@@ -117,7 +104,7 @@ export default function Watchlist() {
           </div>
         )}
       </div>
-        {showModal && (
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="shadcn-card rounded-xl border backdrop-blur-xl bg-background/30 border-card-border text-card-foreground shadow-sm p-4 cursor-pointer">
             <h2 className="text-lg font-bold mb-4">Select Groups</h2>

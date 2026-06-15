@@ -1,18 +1,17 @@
-import axiosInstance from "@/lib/axios";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MovieCard } from "./MovieCard"; // adjust import
-import { Movie } from "@/types/movie";
-import { BACKEND_BASE } from "../config";
-import axios from "axios";
+import { MovieCard } from "./MovieCard";
+import { NormalizedMovie } from "@/types/movie";
+
 interface MovieSectionProps {
   title: string;
-  movies: Movie[];
+  movies: NormalizedMovie[];
   onAddToWatchlist?: (movieId: number, title: string) => void;
-  onAddToGroup?: (movie: Movie) => void;
+  onAddToGroup?: (movie: NormalizedMovie) => void;
 }
 export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: MovieSectionProps) {
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   
@@ -61,16 +60,17 @@ export function MovieSection({ title, movies, onAddToWatchlist, onAddToGroup }: 
       {/* Scrollable movie list */}
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide"
+        className="wa-rail-track flex gap-4 overflow-x-auto px-4 scrollbar-hide"
+        style={{ paddingTop: '22px', paddingBottom: '26px', marginTop: '-16px', marginBottom: '-8px' }}
       >
-        {movies.map((movie: Movie) => (
+        {movies.map((movie: NormalizedMovie) => (
           <div
             key={movie.id}
             className="flex-shrink-0 w-[70%] sm:w-[40%] md:w-1/4 lg:w-1/5 xl:w-1/6"
           >
             <MovieCard
               {...movie}
-              onAddToWatchlist={() => onAddToWatchlist?.(movie.id, movie.title)}
+              onAddToWatchlist={onAddToWatchlist}
               onAddToGroup={() => onAddToGroup?.(movie)}
             />
           </div>

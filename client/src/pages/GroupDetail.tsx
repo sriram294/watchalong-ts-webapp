@@ -11,8 +11,8 @@ import { GroupMovie } from "@/types/groupmovie";
 import { useState as useReactState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { User } from "@/types/user";
-import axios from "axios";
-import { BACKEND_BASE, TMDB_API_KEY } from "../config";
+import { BACKEND_BASE } from "../config";
+import { movieProvider } from "@/lib/movieProvider";
 
 export default function GroupDetail() {
   const [, setLocation] = useLocation();
@@ -23,50 +23,40 @@ export default function GroupDetail() {
   const [inviteCode, setInviteCode] = useReactState<string>("");
   const [showInviteModal, setShowInviteModal] = useState(false);
 
-  useEffect(()=>{
-    load()
-  },[id])
-
+  useEffect(() => {
+    load();
+  }, [id]);
 
   const load = async () => {
     try {
       const res = await axiosInstance.get(`${BACKEND_BASE}/api/groups/${id}`);
       const groupMovieLinks = res.data.groupMovieLinks || [];
 
-      // Fetch TMDB details for each movie in parallel
-      const tmdbPromises = groupMovieLinks.map((link: any) =>
-        axios.get(`https://api.themoviedb.org/3/movie/${link.movie.id}`, {
-          params: { api_key: TMDB_API_KEY },
+      const groupMoviesWithDetails = await Promise.all(
+        groupMovieLinks.map(async (link: any) => {
+          try {
+            const detail = await movieProvider.getDetails(link.movie.id);
+            return { ...link, posterUrl: detail.posterUrl, rating: detail.rating };
+          } catch {
+            return { ...link, posterUrl: null, rating: 0 };
+          }
         })
-          .then(tmdbRes => ({
-            ...link,
-            poster_path: tmdbRes.data.poster_path,
-            vote_average: tmdbRes.data.vote_average,
-          }))
-          .catch(() => ({
-            ...link,
-            poster_path: null,
-            vote_average: 0,
-          }))
       );
 
-      const groupMoviesWithDetails = await Promise.all(tmdbPromises);
-  setGroupMovies(groupMoviesWithDetails);
-  setMembers(res.data.members || []);
-  setGroupName(res.data.name || "");
-  setInviteCode(res.data.inviteCode || "");
+      setGroupMovies(groupMoviesWithDetails);
+      setMembers(res.data.members || []);
+      setGroupName(res.data.name || "");
+      setInviteCode(res.data.inviteCode || "");
     } catch (e) {
       console.error(e);
     }
   };
 
-  
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
-        {/* Invite Modal */}
         <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
           <DialogContent>
             <DialogHeader>
@@ -88,9 +78,9 @@ export default function GroupDetail() {
           </DialogContent>
         </Dialog>
         <div className="flex items-center gap-4 mb-8">
-          <Button 
-            size="icon" 
-            variant="ghost" 
+          <Button
+            size="icon"
+            variant="ghost"
             onClick={() => setLocation('/groups')}
             data-testid="button-back"
           >
@@ -116,8 +106,8 @@ export default function GroupDetail() {
                   <GroupMovieCard
                     groupMovie={movie}
                     groupId={id}
-                    poster_path={movie.poster_path}
-                    vote_average={movie.vote_average}
+                    posterUrl={movie.posterUrl}
+                    rating={movie.rating}
                     onVote={(vote) => console.log('Voted:', vote, 'on', movie.movie.title)}
                   />
                 </div>
@@ -127,8 +117,8 @@ export default function GroupDetail() {
 
           <div className="lg:w-80">
             <div className="sticky top-20">
-              <MemberList 
-                members={members} 
+              <MemberList
+                members={members}
                 onInvite={() => setShowInviteModal(true)}
               />
             </div>

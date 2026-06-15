@@ -1,15 +1,14 @@
 import { Star, Heart, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MovieCardProps {
   id: number;
   title: string;
-  poster_path: string | null;
-  vote_average: number;
+  posterUrl: string | null;
+  rating: number;
+  genre?: string;
   isWatchlistItem?: boolean;
   onAddToWatchlist?: (id: number, title: string) => void;
   onAddToGroup?: () => void;
@@ -18,105 +17,82 @@ interface MovieCardProps {
 export function MovieCard({
   id,
   title,
-  poster_path,
-  vote_average,
+  posterUrl,
+  rating,
+  genre,
   isWatchlistItem,
   onAddToWatchlist,
-  onAddToGroup
+  onAddToGroup,
 }: MovieCardProps) {
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const imageUrl = poster_path
-    ? `https://image.tmdb.org/t/p/w500${poster_path}`
-    : 'https://via.placeholder.com/500x750?text=No+Poster';
+  const imageUrl = posterUrl ?? 'https://via.placeholder.com/500x750?text=No+Poster';
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const handleWatchlistClick = (movieid: number, title: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setIsInWatchlist(!isInWatchlist);
-    onAddToWatchlist?.(movieid, title);
-  };
-
-  const handleGroupClick = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    onAddToGroup?.();
-  };
-
-  const handleCardClick = () => {
-    navigate(`/movie/${id}`);
-  };
-
   return (
     <div
-      className="group relative overflow-hidden rounded-lg transition-transform hover:scale-105 cursor-pointer"
+      className="wa-card cursor-pointer"
       data-testid={`card-movie-${title.toLowerCase().replace(/\s+/g, '-')}`}
-      onClick={handleCardClick}
+      onClick={() => navigate(`/movie/${id}`)}
     >
-      <div className="aspect-[2/3] relative">
+      {/* Poster */}
+      <div className="wa-poster relative aspect-[2/3] overflow-hidden mb-2.5">
         <img
           src={imageUrl}
           alt={title}
-          className="w-full h-full object-cover"
+          className="wa-poster-img w-full h-full object-cover"
         />
 
-        <Badge
-          className="absolute top-2 right-2 gap-1 bg-background/80 backdrop-blur-sm border-border"
-          data-testid={`badge-rating-${title.toLowerCase().replace(/\s+/g, '-')}`}
+        {/* Action buttons — appear on hover */}
+        <div
+          className={`wa-poster-ov absolute inset-0 bg-black/50 flex items-end justify-center gap-2 pb-3 ${
+            isMobile ? '!opacity-100' : ''
+          }`}
         >
-          <Star className="w-3 h-3 fill-primary text-primary" />
-          <span className="text-xs font-semibold">{vote_average.toFixed(1)}</span>
-        </Badge>
+          <Button
+            size="sm"
+            variant={isWatchlistItem ? "default" : "outline"}
+            className="h-8 px-3 backdrop-blur-sm bg-background/70 border-white/20 hover:bg-background/90 text-white"
+            onClick={e => { e.stopPropagation(); onAddToWatchlist?.(id, title); }}
+            data-testid={`button-watchlist-${title.toLowerCase().replace(/\s+/g, '-')}`}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isWatchlistItem ? 'fill-current' : ''}`} />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 px-3 backdrop-blur-sm bg-background/70 border-white/20 hover:bg-background/90 text-white"
+            onClick={e => { e.stopPropagation(); onAddToGroup?.(); }}
+            data-testid={`button-add-group-${title.toLowerCase().replace(/\s+/g, '-')}`}
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
 
-        {/* Mobile: show buttons at top-right. Desktop: show on hover at bottom. */}
-        {isMobile ? (
-          <div className="absolute top-2 right-2 flex gap-2 z-10">
-            <Button
-              size="sm"
-              variant={isWatchlistItem ? "default" : "outline"}
-              className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
-              onClick={(e) => handleWatchlistClick(id, title, e)}
-              data-testid={`button-watchlist-${title.toLowerCase().replace(/\s+/g, '-')}`}
-            >
-              <Heart className={`w-4 h-4 ${isWatchlistItem ? 'fill-current' : ''}`} />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
-              onClick={(e) => handleGroupClick(e)}
-              data-testid={`button-add-group-${title.toLowerCase().replace(/\s+/g, '-')}`}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center gap-2 pb-4">
-            <Button
-              size="sm"
-              variant={isWatchlistItem ? "default" : "outline"}
-              className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
-              onClick={(e) => handleWatchlistClick(id, title, e)}
-              data-testid={`button-watchlist-${title.toLowerCase().replace(/\s+/g, '-')}`}
-            >
-              <Heart className={`w-4 h-4 ${isWatchlistItem ? 'fill-current' : ''}`} />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="backdrop-blur-sm bg-background/80 hover:bg-background/90"
-              onClick={(e) => handleGroupClick(e)}
-              data-testid={`button-add-group-${title.toLowerCase().replace(/\s+/g, '-')}`}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-
-        <div className="mt-2">
-          <h3 className="font-semibold text-sm line-clamp-2" data-testid={`text-title-${title.toLowerCase().replace(/\s+/g, '-')}`}>{title}</h3>
+      {/* Info below poster */}
+      <div>
+        <h3
+          className="font-semibold text-sm text-foreground line-clamp-1 mb-1"
+          data-testid={`text-title-${title.toLowerCase().replace(/\s+/g, '-')}`}
+        >
+          {title}
+        </h3>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400 flex-shrink-0" />
+          <span
+            className="font-semibold text-foreground/80"
+            data-testid={`badge-rating-${title.toLowerCase().replace(/\s+/g, '-')}`}
+          >
+            {rating.toFixed(1)}
+          </span>
+          {genre && (
+            <>
+              <span className="text-muted-foreground/50">•</span>
+              <span>{genre}</span>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
-// ...existing code...

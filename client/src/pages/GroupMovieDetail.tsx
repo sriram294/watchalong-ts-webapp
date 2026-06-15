@@ -3,26 +3,12 @@ import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import axiosInstance from "@/lib/axios";
-import { BACKEND_BASE, TMDB_API_KEY } from "../config";
+import { BACKEND_BASE } from "../config";
+import { movieProvider } from "@/lib/movieProvider";
 import { Star, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GroupMovie } from "@/types/groupmovie";
-import axios from "axios";
-
-interface Member {
-  id: string | number;
-  name: string;
-  avatar?: string;
-}
-
-interface GroupMovieDetail {
-    groupMovie: GroupMovie;
-    groupId: number |string;
-    poster_path: string | null;
-    vote_average: number;
-    onVote?: (vote: 'up' | 'down') => void;
-}
 
 export default function GroupMovieDetail() {
   const params = useParams<{ groupId: number | string; movieId: number | string }>();
@@ -39,28 +25,18 @@ export default function GroupMovieDetail() {
         const res = await axiosInstance.get(`${BACKEND_BASE}/api/groups/${groupId}/movie/${movieId}`);
         const groupMovieData: GroupMovie = res.data;
 
-        // Fetch TMDB details for movie in parallel
-        let poster_path: string | null = null;
-        let vote_average: number = 0;
+        let posterUrl: string | null = null;
+        let rating = 0;
         try {
-          const tmdbRes = await axios.get(`https://api.themoviedb.org/3/movie/${groupMovieData.movieId}`, {
-            params: { api_key: TMDB_API_KEY },
-          });
-          poster_path = tmdbRes.data.poster_path;
-          vote_average = tmdbRes.data.vote_average;
+          const detail = await movieProvider.getDetails(groupMovieData.movieId);
+          posterUrl = detail.posterUrl;
+          rating = detail.rating;
         } catch {
-          poster_path = null;
-          vote_average = 0;
+          // leave defaults
         }
 
-        setGroupMovie({
-          ...groupMovieData,
-          poster_path,
-          vote_average,
-        });
-        
-        } 
-        catch (err) {
+        setGroupMovie({ ...groupMovieData, posterUrl, rating });
+      } catch (err) {
         setError("Failed to load group movie details.");
       } finally {
         setLoading(false);
@@ -73,9 +49,7 @@ export default function GroupMovieDetail() {
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
   if (!groupMovie) return null;
 
-  const imageUrl = groupMovie.poster_path
-    ? `https://image.tmdb.org/t/p/w500${groupMovie.poster_path}`
-    : 'https://via.placeholder.com/500x750?text=No+Poster';
+  const imageUrl = groupMovie.posterUrl ?? 'https://via.placeholder.com/500x750?text=No+Poster';
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,7 +63,7 @@ export default function GroupMovieDetail() {
             <h1 className="text-2xl font-bold mb-2">{groupMovie.title}</h1>
             <Badge className="gap-1 bg-background/80 backdrop-blur-sm border-border w-fit">
               <Star className="w-4 h-4 fill-primary text-primary" />
-              <span className="text-sm font-semibold">{groupMovie.vote_average?.toFixed(1)}</span>
+              <span className="text-sm font-semibold">{groupMovie.rating?.toFixed(1)}</span>
             </Badge>
             <div className="flex gap-4 mt-2">
               <Button size="sm" variant="default" className="flex items-center gap-2">
