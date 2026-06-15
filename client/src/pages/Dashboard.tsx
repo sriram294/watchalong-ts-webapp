@@ -3,22 +3,45 @@ import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { MovieSection } from "@/components/MovieSection";
 import { BottomNav } from "@/components/BottomNav";
+import { Footer } from "@/components/Footer";
 import { useEffect, useRef, useState } from "react";
-import axios from 'axios';
 import { CreateGroupModal } from "@/components/CreateGroupModal";
 import { fetchGroups as sharedFetchGroups, addMovieToGroups as sharedAddMovieToGroups } from "@/lib/groups";
 import { onAddToWatchlist as sharedOnAddToWatchlist } from "@/lib/watchlist";
-import { TMDB_API_KEY, BACKEND_BASE } from '../config';
-import { Movie } from "@/types/movie";
+import { BACKEND_BASE } from '../config';
+import { movieProvider } from "@/lib/movieProvider";
+import type { NormalizedMovie } from "@/types/movie";
 import { Group } from "@/types/group";
 
-export default function Dashboard() {
+type MovieCategoryProps = {
+  catTitle: string;
+  fetcher: () => Promise<NormalizedMovie[]>;
+  onAddToWatchlist: (movieId: number, title: string) => void;
+  onAddToGroup: (movie: NormalizedMovie) => void;
+};
 
-  
+const MovieCategory: React.FC<MovieCategoryProps> = ({ catTitle, fetcher, onAddToWatchlist, onAddToGroup }) => {
+  const [movies, setMovies] = useState<NormalizedMovie[]>([]);
+  useEffect(() => {
+    fetcher().then(setMovies).catch(console.error);
+  }, []);
+  return (
+    <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+      <MovieSection
+        title={catTitle}
+        movies={movies}
+        onAddToWatchlist={onAddToWatchlist}
+        onAddToGroup={onAddToGroup}
+      />
+    </div>
+  );
+};
+
+export default function Dashboard() {
   const [watchlistMovieIds, setWatchlistMovieIds] = useState<number[]>([]);
   const [showModal, setShowModal] = useState(false)
   const [selectedGroups, setSelectedGroups] = useState<(string | number)[]>([])
-  const selectedMovieRef = useRef<Movie | null>(null)
+  const selectedMovieRef = useRef<NormalizedMovie | null>(null)
   const [groups, setGroups] = useState<Group[]>([])
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [creatingGroup, setCreatingGroup] = useState(false);
@@ -42,8 +65,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchWatchlist = async () => {
       try {
-  const res = await axiosInstance.get(`${BACKEND_BASE}/api/watchlist`);
-       // Expecting response: [{ id: "1218925", title: "..." }, ...]
+        const res = await axiosInstance.get(`${BACKEND_BASE}/api/watchlist`);
         const items: { id: string | number; title: string }[] = res.data || [];
         const ids: number[] = items?.map(item => Number(item.id));
         setWatchlistMovieIds(ids);
@@ -54,26 +76,20 @@ export default function Dashboard() {
     fetchWatchlist();
   }, []);
 
-
   const categories = [
-    { title: "Trending Now", endpoint: `/trending/movie/week` },
-    { title: "Popular", endpoint: `/movie/popular` },
-    { title: "Top Rated", endpoint: `/movie/top_rated` },
-    { title: "Upcoming", endpoint: `/movie/upcoming` }
+    { title: "Popular of the Week", fetcher: () => movieProvider.getTrending() },
+    { title: "Just Release", fetcher: () => movieProvider.getPopular() },
+    { title: "Top Rated", fetcher: () => movieProvider.getTopRated() },
+    { title: "Your Watchlist", fetcher: () => movieProvider.getUpcoming() },
   ];
 
-    const onAddToWatchlist = (movieId: number, title: string) => {
-      sharedOnAddToWatchlist(movieId, title, watchlistMovieIds);
-    }
+  const onAddToWatchlist = (movieId: number, title: string) => {
+    sharedOnAddToWatchlist(movieId, title, watchlistMovieIds);
+  }
 
-  type MovieCategoryProps = {
-    catTitle: string;
-    endpoint: string;
-  };
   const fetchGroups = async () => {
     const groupsData = await sharedFetchGroups();
     setGroups(groupsData);
-    console.log('Fetched groups:', groupsData);
   }
 
   const handleAddToGroups = async () => {
@@ -84,7 +100,6 @@ export default function Dashboard() {
     }
   }
 
-
   const handleGroupSelect = (groupId: any) => {
     setSelectedGroups(prev =>
       prev.includes(groupId)
@@ -93,40 +108,24 @@ export default function Dashboard() {
     )
   }
 
-  const openGroupList = (movie: Movie) => {
+  const openGroupList = (movie: NormalizedMovie) => {
     selectedMovieRef.current = movie
     fetchGroups()
     setShowModal(true)
   }
 
-
-
-  const MovieCategory: React.FC<MovieCategoryProps> = ({ catTitle, endpoint }) => {
-    const [movies, setMovies] = useState([]);
-    useEffect(() => {
-  axiosInstance
-        .get(`https://api.themoviedb.org/3${endpoint}?api_key=${TMDB_API_KEY}`)
-        .then((res) => setMovies(res.data.results))
-        .catch((err) => console.error(err));
-    }, [endpoint]);
-    return (
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-        <MovieSection
-          title={catTitle}
-          movies={movies}
-          onAddToWatchlist={onAddToWatchlist}
-          onAddToGroup={openGroupList}
-        />
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-0">
       <Navbar />
-      <HeroSection />
-      {categories.map((cat, idx) => (
-        <MovieCategory key={idx} catTitle={cat.title} endpoint={cat.endpoint} />
+      <HeroSection onAddToWatchlist={onAddToWatchlist} onAddToGroup={openGroupList} />
+      {categories.map((cat) => (
+        <MovieCategory
+          key={cat.title}
+          catTitle={cat.title}
+          fetcher={cat.fetcher}
+          onAddToWatchlist={onAddToWatchlist}
+          onAddToGroup={openGroupList}
+        />
       ))}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -170,13 +169,14 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-        <CreateGroupModal
-          open={showCreateGroupModal}
-          onClose={() => { setShowCreateGroupModal(false); setCreateGroupError(null); }}
-          onCreate={handleCreateGroup}
-          loading={creatingGroup}
-          error={createGroupError}
-        />
+      <CreateGroupModal
+        open={showCreateGroupModal}
+        onClose={() => { setShowCreateGroupModal(false); setCreateGroupError(null); }}
+        onCreate={handleCreateGroup}
+        loading={creatingGroup}
+        error={createGroupError}
+      />
+      <Footer />
       <BottomNav />
     </div>
   );

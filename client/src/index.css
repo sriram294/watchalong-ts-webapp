@@ -135,62 +135,62 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  --background: 12 8% 8%;
+  --background: 0 0% 5%;
 
-  --foreground: 0 0% 95%;
+  --foreground: 0 0% 96%;
 
-  --border: 12 5% 18%;
+  --border: 0 0% 14%;
 
-  --card: 12 6% 12%;
+  --card: 0 0% 9%;
 
-  --card-foreground: 0 0% 95%;
+  --card-foreground: 0 0% 96%;
 
-  --card-border: 12 5% 16%;
+  --card-border: 0 0% 13%;
 
-  --sidebar: 12 5% 14%;
+  --sidebar: 0 0% 10%;
 
-  --sidebar-foreground: 0 0% 95%;
+  --sidebar-foreground: 0 0% 96%;
 
-  --sidebar-border: 12 5% 20%;
+  --sidebar-border: 0 0% 16%;
 
-  --sidebar-primary: 79 54% 30%;
+  --sidebar-primary: 142 69% 45%;
 
-  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-primary-foreground: 0 0% 5%;
 
-  --sidebar-accent: 12 4% 18%;
+  --sidebar-accent: 0 0% 14%;
 
-  --sidebar-accent-foreground: 0 0% 95%;
+  --sidebar-accent-foreground: 0 0% 96%;
 
-  --sidebar-ring: 79 54% 30%;
+  --sidebar-ring: 142 69% 45%;
 
-  --popover: 12 5% 16%;
+  --popover: 0 0% 10%;
 
-  --popover-foreground: 0 0% 95%;
+  --popover-foreground: 0 0% 96%;
 
-  --popover-border: 12 5% 22%;
+  --popover-border: 0 0% 18%;
 
-  --primary: 79 54% 30%;
+  --primary: 142 69% 45%;
 
-  --primary-foreground: 0 0% 98%;
+  --primary-foreground: 0 0% 5%;
 
-  --secondary: 12 4% 20%;
+  --secondary: 0 0% 15%;
 
-  --secondary-foreground: 0 0% 95%;
+  --secondary-foreground: 0 0% 96%;
 
-  --muted: 12 3% 18%;
+  --muted: 0 0% 12%;
 
-  --muted-foreground: 0 0% 65%;
+  --muted-foreground: 0 0% 58%;
 
-  --accent: 210 6% 20%;
+  --accent: 0 0% 16%;
 
-  --accent-foreground: 210 50% 85%;
+  --accent-foreground: 0 0% 90%;
 
-  --destructive: 79 54% 30%;
+  --destructive: 0 72% 51%;
 
   --destructive-foreground: 0 0% 98%;
 
-  --input: 12 5% 35%;
-  --ring: 79 54% 30%;
+  --input: 0 0% 22%;
+  --ring: 142 69% 45%;
   --chart-1: 0 84% 65%;
   --chart-2: 210 70% 60%;
   --chart-3: 142 76% 50%;
@@ -341,4 +341,105 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* =====================================================================
+   APPLE-TV FLAIR — Ken Burns, ambient bleed, spotlight focus
+   ===================================================================== */
+
+@keyframes wa-kenburns {
+  from { transform: scale(1.05) translate3d(0, 0, 0); }
+  to   { transform: scale(1.16) translate3d(-1.5%, -2%, 0); }
+}
+.wa-kenburns {
+  animation: wa-kenburns 26s ease-out infinite alternate;
+}
+
+/* Ambient artwork bleed — hero colour washing down into the page */
+.wa-ambient {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 130vh;
+  z-index: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center top;
+  filter: blur(90px) saturate(1.6);
+  opacity: 0.42;
+  transform: scale(1.25);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 78%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 78%);
+}
+
+/* Poster: continuous radius, depth, specular sheen */
+.wa-poster {
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5), inset 0 0 0 .5px rgba(255,255,255,.07);
+}
+.wa-poster::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(150deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,.04) 22%, transparent 42%);
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+.wa-poster-img {
+  transition: transform .5s cubic-bezier(.22,1,.36,1), filter .4s ease !important;
+}
+.wa-poster-ov {
+  opacity: 0;
+  transition: opacity .2s !important;
+}
+
+/* Spotlight focus: lift hovered card, dim its neighbours */
+.wa-card {
+  transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .4s ease, filter .4s ease;
+  transform-origin: center bottom;
+  will-change: transform;
+}
+.wa-rail-track:hover .wa-card {
+  opacity: .5;
+  filter: saturate(.85) brightness(.72);
+}
+.wa-rail-track:hover .wa-card:hover {
+  opacity: 1;
+  filter: none;
+}
+.wa-card:hover {
+  transform: translateY(-10px) scale(1.07);
+  z-index: 6;
+  position: relative;
+}
+.wa-card:hover .wa-poster {
+  box-shadow: 0 28px 55px -12px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.14) inset, 0 1px 0 rgba(255,255,255,.3) inset;
+}
+.wa-card:hover .wa-poster::before {
+  opacity: 1;
+}
+.wa-card:hover .wa-poster-ov {
+  opacity: 1 !important;
+}
+.wa-card:hover .wa-poster-img {
+  transform: scale(1.06) !important;
+  filter: brightness(1.05) !important;
+}
+.wa-card:hover h3 {
+  color: #fff;
+}
+
+/* Glassy icon button — for navbar search/bell over dark backdrops */
+.btn-glassy {
+  background: rgba(255,255,255,.07) !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.3) !important;
+  backdrop-filter: blur(14px) saturate(1.3) !important;
+  color: rgba(245,245,245,.82) !important;
+}
+.btn-glassy:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,.12) !important;
 }
